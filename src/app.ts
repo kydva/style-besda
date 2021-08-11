@@ -1,12 +1,11 @@
+import dotenv from 'dotenv'
 import express from 'express'
 
+dotenv.config()
 const app = express()
 
-
-app.set('port', process.env.PORT || 3000)
-
 app.use(((req, res, next) => {
-    res.send("Good")
+    res.send(`Listen port ${process.env.PORT}`)
 }))
 
 export default app
