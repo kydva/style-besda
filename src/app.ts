@@ -1,11 +1,33 @@
-import dotenv from 'dotenv'
 import express from 'express'
+import mongoose from 'mongoose'
+import passport from "passport";
+import cors from "cors"
+import router from './routes'
+import * as auth from './auth'
 
-dotenv.config()
+
 const app = express()
 
-app.use((req, res) => {
-    res.send(`Listen port ${process.env.PORT}`)
+mongoose.connect(process.env.DB_URI, {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useUnifiedTopology: true
+}).then(() => {
+}).catch((e) => {
+    console.log(`Mongoose connection error: ${e}`)
 })
+
+app.use(express.json());
+app.use(express.urlencoded({extended: false}));
+app.use(cors({
+    origin: "http://localhost:8080",
+    credentials: true
+}))
+app.use(auth.sessionMiddleware)
+app.use(passport.initialize())
+app.use(passport.session())
+
+
+app.use(router)
 
 export default app
