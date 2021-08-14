@@ -21,11 +21,10 @@ router.get('/logout', (req, res) => {
 });
 
 router.post('/registration', (async (req, res, next) => {
-    if (req.body.password !== req.body.password_confirm) {
+    if (req.body.password !== req.body.passwordConfirm) {
         res.status(400).send({
-            error: {
-                message: 'Password not confirmed',
-                field: 'password_confirm'
+            errors: {
+                passwordConfirm: 'Password is not confirmed'
             }
         });
     }
