@@ -19,7 +19,7 @@
   "scripts": {
     "start": "ts-node -r dotenv/config src/server.ts",
     "watch": "nodemon",
-    "test": "jest"
+    "test": "jest --verbose"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
