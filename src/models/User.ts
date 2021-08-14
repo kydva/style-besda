@@ -5,7 +5,9 @@ export interface IUser {
     name: string,
     password: string
     avatar?: string
+    roles: string[]
     comparePassword: (candidatePassword: string) => Promise<boolean>
+    isAdmin: () => boolean
 }
 
 const userSchema = new Schema<IUser>({
@@ -37,6 +39,11 @@ userSchema.pre('save', async function (next) {
 userSchema.methods.comparePassword = function (candidatePassword: string) {
     const user = this as IUser;
     return bcrypt.compare(candidatePassword, user.password);
+};
+
+userSchema.methods.isAdmin = function () {
+    const user = this as IUser;
+    return user.roles.includes('admin');
 };
 
 export const User = model<IUser>('User', userSchema);

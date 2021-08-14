@@ -52,5 +52,13 @@ export const sessionMiddleware = session({
 export const isAuthenticated: RequestHandler = (req, res, next) => {
     if (req.isAuthenticated()) {
         return next();
-    } else res.status(401).send();
+    }
+    res.status(401).send();
+};
+
+export const isAdmin: RequestHandler = (req, res, next) => {
+    if (req.user.isAdmin()) {
+        return next();
+    }
+    res.status(403).send();
 };
