@@ -24,7 +24,8 @@ const userSchema = new Schema<IUser>({
         minLength: [6, 'Password must be between 6 and 60 characters'],
         maxLength: [60, 'Password must be between 6 and 60 characters']
     },
-    avatar: String
+    avatar: String,
+    roles: [String]
 });
 
 //Hash user password
@@ -43,7 +44,7 @@ userSchema.methods.comparePassword = function (candidatePassword: string) {
 
 userSchema.methods.isAdmin = function () {
     const user = this as IUser;
-    return user.roles.includes('admin');
+    return user.roles?.includes('admin');
 };
 
 export const User = model<IUser>('User', userSchema);
