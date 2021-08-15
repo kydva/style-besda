@@ -57,7 +57,7 @@ export const isAuthenticated: RequestHandler = (req, res, next) => {
 };
 
 export const isAdmin: RequestHandler = (req, res, next) => {
-    if (req.user.isAdmin()) {
+    if (req.isAuthenticated() && req.user.isAdmin()) {
         return next();
     }
     res.status(403).send();
