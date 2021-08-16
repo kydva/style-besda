@@ -9,7 +9,8 @@ export interface IPieceCategory {
 const pieceCategorySchema = new Schema<IPieceCategory>({
     name: { type: String, required: true },
     parent: { type: 'ObjectId', ref: 'PieceCategory' },
-    children: [{ type: 'ObjectId', ref: 'PieceCategory' },]
+    children: [{ type: 'ObjectId', ref: 'PieceCategory' },],
+    __v: { type: Number, select: false}
 });
 
 pieceCategorySchema.pre('save', async function (next) {

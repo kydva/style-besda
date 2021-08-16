@@ -25,7 +25,8 @@ const userSchema = new Schema<IUser>({
         maxLength: [60, 'Password must be between 6 and 60 characters']
     },
     avatar: String,
-    roles: [String]
+    roles: [String],
+    __v: { type: Number, select: false }
 });
 
 //Hash user password
