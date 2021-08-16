@@ -49,8 +49,7 @@ describe('User registration', () => {
         await request(app)
             .post('/registration')
             .send({ name: 'aq', password: '12', passwordConfirm: '12' })
-            .expect(400)
-            .expect({
+            .expect(400, {
                 errors: {
                     name: 'Username must be between 4 and 22 characters',
                     password: 'Password must be between 6 and 60 characters'

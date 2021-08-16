@@ -25,4 +25,9 @@ router.post('/', isAdmin, async (req, res, next) => {
     }
 });
 
+router.get('/', async (req, res, next) => {
+    const categoriesTree = await PieceCategory.getTree();
+    res.send(categoriesTree);
+});
+
 export default router;

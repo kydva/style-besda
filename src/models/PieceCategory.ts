@@ -1,4 +1,4 @@
-import { Document, model, PopulatedDoc, Schema } from 'mongoose';
+import { Document, model, PopulatedDoc, Schema, Model } from 'mongoose';
 
 export interface IPieceCategory {
     name: string,
@@ -6,11 +6,16 @@ export interface IPieceCategory {
     children: PopulatedDoc<IPieceCategory & Document>[]
 }
 
-const pieceCategorySchema = new Schema<IPieceCategory>({
+interface IPieceCategoryModel extends Model<IPieceCategory> {
+    getTree(): any
+}
+
+
+const pieceCategorySchema = new Schema<IPieceCategory, IPieceCategoryModel>({
     name: { type: String, required: true },
     parent: { type: 'ObjectId', ref: 'PieceCategory' },
     children: [{ type: 'ObjectId', ref: 'PieceCategory' },],
-    __v: { type: Number, select: false}
+    __v: { type: Number, select: false }
 });
 
 pieceCategorySchema.pre('save', async function (next) {
@@ -23,4 +28,8 @@ pieceCategorySchema.pre('save', async function (next) {
     next();
 });
 
-export const PieceCategory = model<IPieceCategory>('PieceCategory', pieceCategorySchema);
+pieceCategorySchema.statics.getTree = async function () {
+    return await this.find({ parent: null }).populate({ path: 'children', populate: { path: 'children' } });
+};
+
+export const PieceCategory = model<IPieceCategory, IPieceCategoryModel>('PieceCategory', pieceCategorySchema);
