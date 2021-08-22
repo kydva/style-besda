@@ -37,7 +37,7 @@ describe('User login', () => {
 describe('User registration', () => {
     it('Should return 201 and create user when input data are valid', async () => {
         await request(app)
-            .post('/registration')
+            .post('/register')
             .send({ name: 'newUser1337', password: '123456789', passwordConfirm: '123456789' })
             .expect(201);
 
@@ -47,7 +47,7 @@ describe('User registration', () => {
 
     it('Should return 400 and error messages when input data are invalid', async () => {
         await request(app)
-            .post('/registration')
+            .post('/register')
             .send({ name: 'aq', password: '12', passwordConfirm: '12' })
             .expect(400, {
                 errors: {

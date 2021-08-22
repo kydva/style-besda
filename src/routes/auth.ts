@@ -7,12 +7,12 @@ import '../auth';
 const router = Router();
 
 router.post('/login', passport.authenticate('local'), (req, res) => {
-    res.send(req.user);
+    res.send({ user: req.user });
 });
 
 
 router.get('/me', (req, res) => {
-    res.send(req.user || {});
+    res.send({ user: req.user || null });
 });
 
 router.get('/logout', (req, res) => {
@@ -20,7 +20,7 @@ router.get('/logout', (req, res) => {
     res.end();
 });
 
-router.post('/registration', (async (req, res, next) => {
+router.post('/register', (async (req, res, next) => {
     if (req.body.password !== req.body.passwordConfirm) {
         res.status(400).send({
             errors: {
@@ -38,7 +38,7 @@ router.post('/registration', (async (req, res, next) => {
         req.login(user, (err) => {
             if (err) throw err;
         });
-        res.status(201).send();
+        res.sendStatus(201);
     } catch (e) {
         if (e.name === 'ValidationError') {
             const errors: { [field: string]: { message: string } } = {};
