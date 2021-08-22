@@ -44,7 +44,7 @@ export const sessionMiddleware = session({
     rolling: true,
     saveUninitialized: false,
     cookie: {
-        maxAge: 10 * 60 * 1000,
+        maxAge: 365 * 24 * 60 * 60 * 1000,
         httpOnly: false,
     }
 });
