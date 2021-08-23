@@ -1,5 +1,6 @@
 import { Document, model, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
+import uniqueValidator from 'mongoose-unique-validator';
 
 export interface IUser {
     name: string,
@@ -13,8 +14,8 @@ export interface IUser {
 const userSchema = new Schema<IUser>({
     name: {
         type: String,
+        unique: [true, 'Username must be unique'],
         required: [true, 'Username is required'],
-        unique: [true, 'User with this name already exists'],
         minLength: [4, 'Username must be between 4 and 22 characters'],
         maxLength: [22, 'Username must be between 4 and 22 characters']
     },
@@ -28,6 +29,8 @@ const userSchema = new Schema<IUser>({
     roles: [String],
     __v: { type: Number, select: false }
 });
+
+userSchema.plugin(uniqueValidator, { message: 'The user with name "{VALUE}" already exists' });
 
 //Hash user password
 userSchema.pre('save', async function (next) {

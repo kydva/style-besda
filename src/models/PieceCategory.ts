@@ -1,4 +1,5 @@
 import { Document, model, PopulatedDoc, Schema, Model } from 'mongoose';
+import uniqueValidator from 'mongoose-unique-validator';
 
 export interface IPieceCategory {
     name: string,
@@ -10,13 +11,14 @@ interface IPieceCategoryModel extends Model<IPieceCategory> {
     getTree(): any
 }
 
-
 const pieceCategorySchema = new Schema<IPieceCategory, IPieceCategoryModel>({
-    name: { type: String, required: [true, 'Category name cannot be empty'] },
+    name: { type: String, required: [true, 'Category name cannot be empty'], unique: true },
     parent: { type: 'ObjectId', ref: 'PieceCategory' },
     children: [{ type: 'ObjectId', ref: 'PieceCategory' },],
     __v: { type: Number, select: false }
 });
+
+pieceCategorySchema.plugin(uniqueValidator, { message: 'Name must be unique' });
 
 pieceCategorySchema.pre('save', async function (next) {
     if (this.isModified('parent') && this.parent) {
@@ -39,7 +41,6 @@ pieceCategorySchema.pre('remove', async function (next) {
     }
     next();
 });
-
 
 pieceCategorySchema.statics.getTree = async function () {
     return await this.find({ parent: null }).populate({ path: 'children', populate: { path: 'children' } });

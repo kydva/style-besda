@@ -39,7 +39,7 @@ router.post('/', isAdmin, async (req, res, next) => {
 
 router.patch('/:category', isAdmin, async (req, res, next) => {
     try {
-        await req.category.update({ $set: { name: req.body.name } }, { runValidators: true });
+        await req.category.update({ $set: { name: req.body.name } }, { runValidators: true, context: 'query' });
         res.sendStatus(204);
     } catch (e) {
         if (e.name === 'ValidationError') {
