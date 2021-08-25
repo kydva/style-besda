@@ -1,6 +1,7 @@
+import { Document } from 'mongoose';
 import { IUser } from '../models/User';
 import { IPieceCategory } from '../models/PieceCategory';
-import { Document } from 'mongoose';
+import { IPiece } from 'src/models/Piece';
 
 
 declare global {
@@ -8,7 +9,8 @@ declare global {
     // eslint-disable-next-line @typescript-eslint/no-empty-interface
     interface User extends IUser { }
     interface Request {
-      category?: IPieceCategory & Document
+      category?: IPieceCategory & Document,
+      piece?: IPiece & Document;
     }
   }
 }

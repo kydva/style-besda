@@ -1,30 +1,26 @@
 import { Router } from 'express';
 import { isAdmin } from '../auth';
-import { PieceCategory } from '../models/PieceCategory';
+import { Piece } from '../models/Piece';
 
 const router = Router();
 
-router.param('category', async function (req, res, next, categoryId) {
-    const category = await PieceCategory.findById(categoryId);
-    if (!category) {
+router.param('piece', async (req, res, next, pieceId) => {
+    const piece = await Piece.findById(pieceId);
+    if (!piece) {
         return res.sendStatus(404);
     }
-    req.category = category;
+    req.piece = piece;
     next();
-});
-
-router.get('/', async (req, res) => {
-    const categoriesTree = await PieceCategory.getTree();
-    res.send({ categories: categoriesTree });
 });
 
 router.post('/', isAdmin, async (req, res, next) => {
     try {
-        const category = new PieceCategory({
+        const piece = new Piece({
             name: req.body.name,
-            parent: req.body.parent ?? null
+            gender: req.body.gender,
+            category: req.body.category
         });
-        await category.save();
+        await piece.save();
         res.sendStatus(201);
     } catch (e) {
         if (e.name === 'ValidationError') {
@@ -37,16 +33,30 @@ router.post('/', isAdmin, async (req, res, next) => {
     }
 });
 
-router.patch('/:category', isAdmin, async (req, res, next) => {
-    const fieldsForUpdate = ['name'] as const;
+router.get('/', async (req, res) => {
+    const limit = +(req.query.limit ?? 20);
+    const skip = +(req.query.skip ?? 0);
+    const pieces = await Piece.find().limit(limit).skip(skip);
+    const total = await Piece.countDocuments();
+
+    res.send({
+        pieces,
+        limit,
+        skip,
+        total
+    });
+});
+
+router.patch('/:piece', isAdmin, async (req, res, next) => {
+    const fieldsForUpdate = ['name', 'gender', 'category'] as const;
     fieldsForUpdate.forEach((field) => {
         if (typeof req.body[field] !== 'undefined') {
-            req.category[field] = req.body[field];
+            req.piece[field] = req.body[field];
         }
     });
 
     try {
-        await req.category.save();
+        await req.piece.save();
         res.sendStatus(204);
     } catch (e) {
         if (e.name === 'ValidationError') {
@@ -59,8 +69,8 @@ router.patch('/:category', isAdmin, async (req, res, next) => {
     }
 });
 
-router.delete('/:category', isAdmin, async (req, res) => {
-    await req.category.delete();
+router.delete('/:piece', isAdmin, async (req, res) => {
+    await req.piece.delete();
     res.sendStatus(204);
 });
 

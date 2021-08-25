@@ -68,30 +68,22 @@ describe('GET /piece-categories', () => {
     });
 });
 
-describe('PATCH /piece-categories', () => {
-    it('Should update categories correctly', async () => {
+describe('PATCH /piece-categories/:category', () => {
+    it('Should update category correctly', async () => {
         const agent = await getAdminAgent();
         const testCategory = await (new PieceCategory({ name: 'Test category' })).save();
         await agent.patch(`/piece-categories/${testCategory._id}`).send({ name: 'New name' }).expect(204);
-        const testCategoryWithNewName = await PieceCategory.find({ name: 'New name', _id: testCategory._id });
-        expect(testCategoryWithNewName).toHaveLength(1);
-    });
-
-    it('Should return 400 and error message when no parameters provided', async () => {
-        const agent = await getAdminAgent();
-        const testCategory = await (new PieceCategory({ name: 'Test category' })).save();
-        await agent.patch(`/piece-categories/${testCategory._id}`).send().expect(400).expect((res) => {
-            expect(res.body.errors).toHaveProperty('name');
-        });
+        const testCategoryWithNewName = await PieceCategory.findOne({ name: 'New name', _id: testCategory._id });
+        expect(testCategoryWithNewName).not.toBeNull();
     });
 });
 
-describe('DELETE /piece-categories', () => {
-    it('Should delete categories correctly', async () => {
+describe('DELETE /piece-categories/:category', () => {
+    it('Should delete category correctly', async () => {
         await addCategories();
         const agent = await getAdminAgent();
         const shortSleeveShirts = await PieceCategory.findOne({ name: 'Short sleeve shirts' });
-        await agent.delete(`/piece-categories/${shortSleeveShirts._id}`).send().expect(204);
+        await agent.delete(`/piece-categories/${shortSleeveShirts._id}`).expect(204);
         const shirts = await PieceCategory.findOne({ name: 'Shirts' });
         expect(shirts.children).not.toContain(shortSleeveShirts._id);
         expect(await PieceCategory.findOne({ name: 'Short sleeve shirts' })).toEqual(null);
