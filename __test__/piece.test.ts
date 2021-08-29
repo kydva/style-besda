@@ -1,10 +1,27 @@
 import mongoose from 'mongoose';
-import redis from '../src/redis';
 import supertest from 'supertest';
+import redis from '../src/redis';
 import app from '../src/app';
 import { Piece } from '../src/models/Piece';
 import { User } from '../src/models/User';
 import { PieceCategory } from '../src/models/PieceCategory';
+
+jest.mock('../src/utils/s3');
+jest.mock('../src/utils/upload', () => {
+    return {
+        single: jest.fn().mockImplementation(() => {
+            return (req: any, res: any, next: any) => {
+                req.file = {
+                    originalname: 'fake.jpg',
+                    mimetype: 'image/jpeg',
+                    filename: 'fake.jpg',
+                    path: 'tmp/fake.jpg',
+                };
+                return next();
+            };
+        })
+    };
+});
 
 beforeAll(async () => {
     const admin = new User({ name: 'admin', password: '123456789', roles: ['admin'] });
@@ -55,10 +72,10 @@ describe('GET /pieces', () => {
         const category = await (new PieceCategory({ name: 'T-Shirts' })).save();
 
         await Piece.insertMany([
-            { name: 'White t-shirt', gender: 'M', category: category._id },
-            { name: 'Black t-shirt', gender: 'M', category: category._id },
-            { name: 'Orange t-shirt', gender: 'M', category: category._id },
-            { name: 'Yellow t-shirt', gender: 'M', category: category._id }
+            { name: 'White t-shirt', gender: 'M', category: category._id, img: 'img.jpg' },
+            { name: 'Black t-shirt', gender: 'M', category: category._id, img: 'img.jpg' },
+            { name: 'Orange t-shirt', gender: 'M', category: category._id, img: 'img.jpg' },
+            { name: 'Yellow t-shirt', gender: 'M', category: category._id, img: 'img.jpg' }
         ]);
 
         await supertest(app).get('/pieces').expect(200).expect((res) => {
@@ -71,7 +88,7 @@ describe('PATCH /pieces/:piece', () => {
     it('Should update piece correctly', async () => {
         const agent = await getAdminAgent();
         const category = await (new PieceCategory({ name: 'Test category' })).save();
-        const testPiece = await (new Piece({ name: 'Test piece', gender: 'F', category: category._id })).save();
+        const testPiece = await (new Piece({ name: 'Test piece', gender: 'F', category: category._id, img: 'img.jpg' })).save();
         await agent.patch(`/pieces/${testPiece._id}`).send({ gender: 'M' }).expect(204);
         const updatedTestPiece = await Piece.findOne({ _id: testPiece._id, gender: 'M' });
         expect(updatedTestPiece).not.toBeNull();
@@ -81,14 +98,12 @@ describe('PATCH /pieces/:piece', () => {
 describe('DELETE /pieces/:piece', () => {
     it('Should delete piece correctly', async () => {
         const category = await (new PieceCategory({ name: 'T-Shirts' })).save();
-        const piece = await (new Piece({ name: 'White T-Shirt', category: category._id })).save();
+        const piece = await (new Piece({ name: 'White T-Shirt', gender: 'M', category: category._id, img: 'img.jpg' })).save();
         const agent = await getAdminAgent();
         await agent.delete(`/pieces/${piece._id}`).expect(204);
-
         expect(await Piece.findOne({ name: 'White T-Shirt' })).toEqual(null);
     });
 });
-
 
 async function getAdminAgent() {
     const agent = supertest.agent(app);

@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { isAdmin } from '../auth';
 import { Piece } from '../models/Piece';
+import * as s3 from '../utils/s3';
+import upload from '../utils/upload';
 
 const router = Router();
 
@@ -13,13 +15,29 @@ router.param('piece', async (req, res, next, pieceId) => {
     next();
 });
 
-router.post('/', isAdmin, async (req, res, next) => {
+router.post('/', isAdmin, upload.single('img'), async (req, res, next) => {
     try {
+        const allowedTypes = ['image/jpeg', 'image/png'];
+
+        if (!req.file) {
+            return res.status(400).send({ errors: { img: 'Image is required' } });
+        }
+
+        if (!allowedTypes.includes(req.file.mimetype)) {
+            return res.status(415).send({ errors: { img: 'Unsupported image type. Supported extensions: png, jpg, jpeg' } });
+        }
+
         const piece = new Piece({
             name: req.body.name,
             gender: req.body.gender,
-            category: req.body.category
+            category: req.body.category,
+            img: req.file.filename
         });
+
+        await piece.validate(['name', 'gender', 'category']);
+
+        //If validation error is not thrown, upload the image to s3
+        await s3.moveFileToBucket(req.file);
         await piece.save();
         res.sendStatus(201);
     } catch (e) {
