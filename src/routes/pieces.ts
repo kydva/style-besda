@@ -41,55 +41,50 @@ router.post('/', isAdmin, upload.single('img'), async (req, res, next) => {
         await piece.save();
         res.sendStatus(201);
     } catch (e) {
-        if (e.name === 'ValidationError') {
-            const errors: { [field: string]: { message: string } } = {};
-            for (const field in e.errors) {
-                errors[field] = e.errors[field].message;
-            }
-            res.status(400).send({ errors });
-        } else next(e);
+        next(e);
     }
 });
 
-router.get('/', async (req, res) => {
-    const limit = +(req.query.limit ?? 20);
-    const skip = +(req.query.skip ?? 0);
-    const pieces = await Piece.find().limit(limit).skip(skip);
-    const total = await Piece.countDocuments();
-
-    res.send({
-        pieces,
-        limit,
-        skip,
-        total
-    });
+router.get('/', async (req, res, next) => {
+    try {
+        const limit = +(req.query.limit ?? 20);
+        const skip = +(req.query.skip ?? 0);
+        const pieces = await Piece.find().limit(limit).skip(skip);
+        const total = await Piece.countDocuments();
+        res.send({
+            pieces,
+            limit,
+            skip,
+            total
+        });
+    } catch (e) {
+        next(e);
+    }
 });
 
 router.patch('/:piece', isAdmin, async (req, res, next) => {
-    const fieldsForUpdate = ['name', 'gender', 'category'] as const;
-    fieldsForUpdate.forEach((field) => {
-        if (typeof req.body[field] !== 'undefined') {
-            req.piece[field] = req.body[field];
-        }
-    });
-
     try {
+        const fieldsForUpdate = ['name', 'gender', 'category'] as const;
+        fieldsForUpdate.forEach((field) => {
+            if (typeof req.body[field] !== 'undefined') {
+                req.piece[field] = req.body[field];
+            }
+        });
+
         await req.piece.save();
         res.sendStatus(204);
     } catch (e) {
-        if (e.name === 'ValidationError') {
-            const errors: { [field: string]: { message: string } } = {};
-            for (const field in e.errors) {
-                errors[field] = e.errors[field].message;
-            }
-            res.status(400).send({ errors });
-        } else next(e);
+        next(e);
     }
 });
 
-router.delete('/:piece', isAdmin, async (req, res) => {
-    await req.piece.delete();
-    res.sendStatus(204);
+router.delete('/:piece', isAdmin, async (req, res, next) => {
+    try {
+        await req.piece.delete();
+        res.sendStatus(204);
+    } catch (e) {
+        next(e);
+    }
 });
 
 export default router;

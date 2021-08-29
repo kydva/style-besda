@@ -13,9 +13,13 @@ router.param('category', async function (req, res, next, categoryId) {
     next();
 });
 
-router.get('/', async (req, res) => {
-    const categoriesTree = await PieceCategory.getTree();
-    res.send({ categories: categoriesTree });
+router.get('/', async (req, res, next) => {
+    try {
+        const categoriesTree = await PieceCategory.getTree();
+        res.send({ categories: categoriesTree });
+    } catch (e) {
+        next(e);
+    }
 });
 
 router.post('/', isAdmin, async (req, res, next) => {
@@ -27,41 +31,32 @@ router.post('/', isAdmin, async (req, res, next) => {
         await category.save();
         res.sendStatus(201);
     } catch (e) {
-        if (e.name === 'ValidationError') {
-            const errors: { [field: string]: { message: string } } = {};
-            for (const field in e.errors) {
-                errors[field] = e.errors[field].message;
-            }
-            res.status(400).send({ errors });
-        } else next(e);
+        next(e);
     }
 });
 
 router.patch('/:category', isAdmin, async (req, res, next) => {
-    const fieldsForUpdate = ['name'] as const;
-    fieldsForUpdate.forEach((field) => {
-        if (typeof req.body[field] !== 'undefined') {
-            req.category[field] = req.body[field];
-        }
-    });
-
     try {
+        const fieldsForUpdate = ['name'] as const;
+        fieldsForUpdate.forEach((field) => {
+            if (typeof req.body[field] !== 'undefined') {
+                req.category[field] = req.body[field];
+            }
+        });
         await req.category.save();
         res.sendStatus(204);
     } catch (e) {
-        if (e.name === 'ValidationError') {
-            const errors: { [field: string]: { message: string } } = {};
-            for (const field in e.errors) {
-                errors[field] = e.errors[field].message;
-            }
-            res.status(400).send({ errors });
-        } else next(e);
+        next(e);
     }
 });
 
-router.delete('/:category', isAdmin, async (req, res) => {
-    await req.category.delete();
-    res.sendStatus(204);
+router.delete('/:category', isAdmin, async (req, res, next) => {
+    try {
+        await req.category.delete();
+        res.sendStatus(204);
+    } catch (e) {
+        next(e);
+    }
 });
 
 export default router;
