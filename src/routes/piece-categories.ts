@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAdmin } from '../auth';
+import { isAdmin } from '../utils/auth';
 import { PieceCategory } from '../models/PieceCategory';
 
 const router = Router();

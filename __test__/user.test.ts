@@ -2,7 +2,7 @@ import app from '../src/app';
 import request from 'supertest';
 import { User } from '../src/models/User';
 import mongoose from 'mongoose';
-import redis from '../src/redis';
+import redis from '../src/utils/redis';
 
 
 afterAll(async () => {

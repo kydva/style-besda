@@ -2,7 +2,7 @@ import { Router } from 'express';
 import passport from 'passport';
 import { User } from '../models/User';
 
-import '../auth';
+import '../utils/auth';
 
 const router = Router();
 

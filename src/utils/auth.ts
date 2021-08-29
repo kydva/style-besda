@@ -1,7 +1,7 @@
 import passport from 'passport';
 import { User } from '../models/User';
 import PassportLocal from 'passport-local';
-import redisClient from '../redis';
+import redisClient from './redis';
 import connectRedis from 'connect-redis';
 import session from 'express-session';
 import { RequestHandler } from 'express';

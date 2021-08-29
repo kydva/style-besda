@@ -3,8 +3,8 @@ import mongoose from 'mongoose';
 import passport from 'passport';
 import cors from 'cors';
 import router from './routes';
-import * as auth from './auth';
-import errorHandler from './error-handler';
+import * as auth from './utils/auth';
+import errorHandler from './utils/error-handler';
 
 
 const app = express();

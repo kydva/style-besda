@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAdmin } from '../auth';
+import { isAdmin } from '../utils/auth';
 import { Piece } from '../models/Piece';
 import * as s3 from '../utils/s3';
 import upload from '../utils/upload';

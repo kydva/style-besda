@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import supertest from 'supertest';
-import redis from '../src/redis';
+import redis from '../src/utils/redis';
 import app from '../src/app';
 import { PieceCategory } from '../src/models/PieceCategory';
 import { User } from '../src/models/User';
