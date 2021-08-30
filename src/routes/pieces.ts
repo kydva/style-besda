@@ -34,7 +34,7 @@ router.post('/', isAdmin, upload.single('img'), async (req, res, next) => {
             img: req.file.filename
         });
 
-        await piece.validate(['name', 'gender', 'category']);
+        await piece.validate();
 
         //If validation error is not thrown, upload the image to s3
         await s3.moveFileToBucket(req.file);

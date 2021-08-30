@@ -3,6 +3,7 @@ import uniqueValidator from 'mongoose-unique-validator';
 
 export interface IPieceCategory {
     name: string,
+    gender: 'M'|'F',
     parent?: PopulatedDoc<IPieceCategory & Document>,
     children: PopulatedDoc<IPieceCategory & Document>[]
 }
@@ -13,6 +14,7 @@ interface IPieceCategoryModel extends Model<IPieceCategory> {
 
 const pieceCategorySchema = new Schema<IPieceCategory, IPieceCategoryModel>({
     name: { type: String, required: [true, 'Category name cannot be empty'], unique: true },
+    gender: { type: String, enum: ['M', 'F'], required: [true, 'Gender is required'] },
     parent: { type: 'ObjectId', ref: 'PieceCategory' },
     children: [{ type: 'ObjectId', ref: 'PieceCategory' },],
     __v: { type: Number, select: false }

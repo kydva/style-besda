@@ -3,7 +3,7 @@ import uniqueValidator from 'mongoose-unique-validator';
 
 export interface IPiece {
     name: string,
-    gender?: 'M' | 'F',
+    gender: 'M' | 'F',
     category: Types.ObjectId,
     img: string
 }

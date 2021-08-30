@@ -26,7 +26,8 @@ router.post('/', isAdmin, async (req, res, next) => {
     try {
         const category = new PieceCategory({
             name: req.body.name,
-            parent: req.body.parent ?? null
+            parent: req.body.parent ?? null,
+            gender: req.body.gender
         });
         await category.save();
         res.sendStatus(201);
