@@ -34,7 +34,9 @@ describe('POST /piece-categories', () => {
         const shirts = await PieceCategory.findOne({ name: 'Shirts' });
         const shortSleeveShirts = await PieceCategory.findOne({ name: 'Short sleeve shirts' });
         const grandadCollarShirts = await PieceCategory.findOne({ name: 'Grandad collar shirts' });
+        const hawaiianShirts = await PieceCategory.findOne({ name: 'Hawaiian shirts' });
         expect(JSON.stringify(shirts.children)).toEqual(JSON.stringify([shortSleeveShirts._id, grandadCollarShirts._id]));
+        expect(JSON.stringify(hawaiianShirts.ancestors)).toEqual(JSON.stringify([shirts._id, shortSleeveShirts._id]));
     });
 });
 
@@ -50,14 +52,14 @@ describe('GET /piece-categories', () => {
             const expected = {
                 categories: [
                     {
-                        _id: shirts._id, gender: 'M', name: shirts.name, parent: shirts.parent, children: [
+                        _id: shirts._id, gender: 'M', name: shirts.name, parent: shirts.parent, ancestors: shirts.ancestors, children: [
                             {
-                                _id: shortSleeveShirts._id, gender: 'M', name: shortSleeveShirts.name, parent: shortSleeveShirts.parent, children: [
-                                    { _id: hawaiianShirts._id, gender: 'M', name: hawaiianShirts.name, parent: hawaiianShirts.parent, children: hawaiianShirts.children }
+                                _id: shortSleeveShirts._id, gender: 'M', name: shortSleeveShirts.name, parent: shortSleeveShirts.parent, ancestors: shortSleeveShirts.ancestors, children: [
+                                    { _id: hawaiianShirts._id, gender: 'M', name: hawaiianShirts.name, parent: hawaiianShirts.parent, ancestors: hawaiianShirts.ancestors, children: hawaiianShirts.children }
                                 ]
                             },
                             {
-                                _id: grandadCollarShirts._id, gender: 'M', name: grandadCollarShirts.name, parent: grandadCollarShirts.parent, children: grandadCollarShirts.children
+                                _id: grandadCollarShirts._id, gender: 'M', name: grandadCollarShirts.name, parent: grandadCollarShirts.parent, ancestors: grandadCollarShirts.ancestors, children: grandadCollarShirts.children
                             }
                         ]
                     }

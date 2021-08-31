@@ -3,9 +3,10 @@ import uniqueValidator from 'mongoose-unique-validator';
 
 export interface IPieceCategory {
     name: string,
-    gender: 'M'|'F',
+    gender: 'M' | 'F',
     parent?: PopulatedDoc<IPieceCategory & Document>,
-    children: PopulatedDoc<IPieceCategory & Document>[]
+    children: PopulatedDoc<IPieceCategory & Document>[],
+    ancestors: PopulatedDoc<IPieceCategory & Document>[],
 }
 
 interface IPieceCategoryModel extends Model<IPieceCategory> {
@@ -17,6 +18,7 @@ const pieceCategorySchema = new Schema<IPieceCategory, IPieceCategoryModel>({
     gender: { type: String, enum: ['M', 'F'], required: [true, 'Gender is required'] },
     parent: { type: 'ObjectId', ref: 'PieceCategory' },
     children: [{ type: 'ObjectId', ref: 'PieceCategory' },],
+    ancestors: [{ type: 'ObjectId', ref: 'PieceCategory' }],
     __v: { type: Number, select: false }
 });
 
@@ -27,6 +29,7 @@ pieceCategorySchema.pre('save', async function (next) {
         const parent = await PieceCategory.findById(this.parent);
         parent.children.push(this._id);
         await parent.save();
+        this.ancestors = [...parent.ancestors, this.parent];
     }
     next();
 });
