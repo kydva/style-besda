@@ -26,7 +26,7 @@ describe('POST /piece-categories', () => {
         const notAdmin = new User({ name: 'notAdmin', password: '123456789' });
         await notAdmin.save();
         await agent.post('/login').send({ name: 'notAdmin', password: '123456789' }).expect(200);
-        await agent.post('/piece-categories').send({ name: 'Shirts' }).expect(403);
+        await agent.post('/piece-categories').send({ name: 'Shirts', gender: 'M' }).expect(403);
     });
 
     it('Should build categories relationships corrrectly', async () => {
@@ -50,14 +50,14 @@ describe('GET /piece-categories', () => {
             const expected = {
                 categories: [
                     {
-                        _id: shirts._id, name: shirts.name, parent: shirts.parent, children: [
+                        _id: shirts._id, gender: 'M', name: shirts.name, parent: shirts.parent, children: [
                             {
-                                _id: shortSleeveShirts._id, name: shortSleeveShirts.name, parent: shortSleeveShirts.parent, children: [
-                                    { _id: hawaiianShirts._id, name: hawaiianShirts.name, parent: hawaiianShirts.parent, children: hawaiianShirts.children }
+                                _id: shortSleeveShirts._id, gender: 'M', name: shortSleeveShirts.name, parent: shortSleeveShirts.parent, children: [
+                                    { _id: hawaiianShirts._id, gender: 'M', name: hawaiianShirts.name, parent: hawaiianShirts.parent, children: hawaiianShirts.children }
                                 ]
                             },
                             {
-                                _id: grandadCollarShirts._id, name: grandadCollarShirts.name, parent: grandadCollarShirts.parent, children: grandadCollarShirts.children
+                                _id: grandadCollarShirts._id, gender: 'M', name: grandadCollarShirts.name, parent: grandadCollarShirts.parent, children: grandadCollarShirts.children
                             }
                         ]
                     }
@@ -71,7 +71,7 @@ describe('GET /piece-categories', () => {
 describe('PATCH /piece-categories/:category', () => {
     it('Should update category correctly', async () => {
         const agent = await getAdminAgent();
-        const testCategory = await (new PieceCategory({ name: 'Test category' })).save();
+        const testCategory = await (new PieceCategory({ name: 'Test category', gender: 'M' })).save();
         await agent.patch(`/piece-categories/${testCategory._id}`).send({ name: 'New name' }).expect(204);
         const testCategoryWithNewName = await PieceCategory.findOne({ name: 'New name', _id: testCategory._id });
         expect(testCategoryWithNewName).not.toBeNull();
@@ -94,12 +94,12 @@ describe('DELETE /piece-categories/:category', () => {
 
 async function addCategories() {
     const agent = await getAdminAgent();
-    await agent.post('/piece-categories').send({ name: 'Shirts' }).expect(201);
+    await agent.post('/piece-categories').send({ name: 'Shirts', gender: 'M' }).expect(201);
     const shirts = await PieceCategory.findOne({ name: 'Shirts' });
-    await agent.post('/piece-categories').send({ name: 'Short sleeve shirts', parent: shirts._id });
-    await agent.post('/piece-categories').send({ name: 'Grandad collar shirts', parent: shirts._id });
+    await agent.post('/piece-categories').send({ name: 'Short sleeve shirts', gender: 'M', parent: shirts._id });
+    await agent.post('/piece-categories').send({ name: 'Grandad collar shirts', gender: 'M', parent: shirts._id });
     const shortSleeveShirts = await PieceCategory.findOne({ name: 'Short sleeve shirts' });
-    await agent.post('/piece-categories').send({ name: 'Hawaiian shirts', parent: shortSleeveShirts._id });
+    await agent.post('/piece-categories').send({ name: 'Hawaiian shirts', gender: 'M', parent: shortSleeveShirts._id });
 }
 
 async function getAdminAgent() {

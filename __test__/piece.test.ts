@@ -50,7 +50,7 @@ describe('POST /pieces', () => {
 
     it('Should create piece when input data are valid', async () => {
         const agent = await getAdminAgent();
-        const category = await (new PieceCategory({ name: 'T-Shirts' })).save();
+        const category = await (new PieceCategory({ name: 'T-Shirts', gender: 'M' })).save();
         await agent.post('/pieces').send({ name: 'White t-shirt', gender: 'M', category: category._id }).expect(201);
         const piece = await Piece.find({ name: 'White t-shirt' });
         expect(piece).not.toBeNull();
@@ -69,7 +69,7 @@ describe('POST /pieces', () => {
 
 describe('GET /pieces', () => {
     it('Should return pieces', async () => {
-        const category = await (new PieceCategory({ name: 'T-Shirts' })).save();
+        const category = await (new PieceCategory({ name: 'T-Shirts', gender: 'M' })).save();
 
         await Piece.insertMany([
             { name: 'White t-shirt', gender: 'M', category: category._id, img: 'img.jpg' },
@@ -87,7 +87,7 @@ describe('GET /pieces', () => {
 describe('PATCH /pieces/:piece', () => {
     it('Should update piece correctly', async () => {
         const agent = await getAdminAgent();
-        const category = await (new PieceCategory({ name: 'Test category' })).save();
+        const category = await (new PieceCategory({ name: 'Test category', gender: 'M' })).save();
         const testPiece = await (new Piece({ name: 'Test piece', gender: 'F', category: category._id, img: 'img.jpg' })).save();
         await agent.patch(`/pieces/${testPiece._id}`).send({ gender: 'M' }).expect(204);
         const updatedTestPiece = await Piece.findOne({ _id: testPiece._id, gender: 'M' });
@@ -97,11 +97,11 @@ describe('PATCH /pieces/:piece', () => {
 
 describe('DELETE /pieces/:piece', () => {
     it('Should delete piece correctly', async () => {
-        const category = await (new PieceCategory({ name: 'T-Shirts' })).save();
+        const category = await (new PieceCategory({ name: 'T-Shirts', gender: 'M' })).save();
         const piece = await (new Piece({ name: 'White T-Shirt', gender: 'M', category: category._id, img: 'img.jpg' })).save();
         const agent = await getAdminAgent();
         await agent.delete(`/pieces/${piece._id}`).expect(204);
-        expect(await Piece.findOne({ name: 'White T-Shirt' })).toEqual(null);
+        expect(await Piece.findOne({ name: 'White T-Shirt', gender: 'M' })).toEqual(null);
     });
 });
 
