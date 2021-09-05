@@ -3,10 +3,12 @@ import * as s3 from '../utils/s3';
 import authRouter from './auth';
 import categoriesRouter from './piece-categories';
 import piecesRouter from './pieces';
+import usersRouter from './users';
 
 const router = Router();
 
 router.use(authRouter);
+router.use('/users', usersRouter);
 router.use('/piece-categories', categoriesRouter);
 router.use('/pieces', piecesRouter);
 router.get('/img/:name', async (req, res) => {

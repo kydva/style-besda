@@ -1,18 +1,24 @@
 import { Router } from 'express';
-import { isAdmin } from '../utils/auth';
-import { Piece } from '../models/Piece';
+import { isAdmin, isAuthenticated } from '../utils/auth';
+import { IPiece, Piece } from '../models/Piece';
 import * as s3 from '../utils/s3';
 import upload from '../utils/upload';
+import { FilterQuery } from 'mongoose';
+import { PieceCategory } from '../models/PieceCategory';
 
 const router = Router();
 
 router.param('piece', async (req, res, next, pieceId) => {
-    const piece = await Piece.findById(pieceId);
-    if (!piece) {
-        return res.sendStatus(404);
+    try {
+        const piece = await Piece.findById(pieceId);
+        if (!piece) {
+            return res.sendStatus(404);
+        }
+        req.piece = piece;
+        next();
+    } catch (e) {
+        next(e);
     }
-    req.piece = piece;
-    next();
 });
 
 router.post('/', isAdmin, upload.single('img'), async (req, res, next) => {
@@ -45,17 +51,37 @@ router.post('/', isAdmin, upload.single('img'), async (req, res, next) => {
     }
 });
 
-router.get('/', async (req, res, next) => {
+router.get('/', isAuthenticated, async (req, res, next) => {
     try {
+        const searchQuery = req.query.searchQuery as string ?? null;
+        const categories = req.query.categories as string[] ?? null;
         const limit = +(req.query.limit ?? 20);
         const skip = +(req.query.skip ?? 0);
-        const pieces = await Piece.find().limit(limit).skip(skip);
-        const total = await Piece.countDocuments();
+
+        const query: FilterQuery<IPiece> = {};
+
+        if (req.query.inWardrobe && req.query.inWardrobe === 'true') {
+            query._id = { $in: req.user.wardrobe };
+        }
+        if (searchQuery && searchQuery !== '') {
+            query.name = new RegExp(searchQuery, 'i');
+        }
+        if (categories && categories.length > 0) {
+            const childCategories = await PieceCategory.find({ ancestors: { $in: req.query.categories } }).distinct('_id');
+            const matchedCategories = childCategories.concat(req.query.categories);
+            query.category = { $in: matchedCategories };
+        }
+
+        const pieces = await Piece.find(query).limit(limit).skip(skip);
+        const totalResults = await Piece.countDocuments(query);
+
+        const piecesForUser = pieces.map((piece) => {
+            return piece.toJsonFor(req.user);
+        });
+
         res.send({
-            pieces,
-            limit,
-            skip,
-            total
+            pieces: piecesForUser,
+            totalResults
         });
     } catch (e) {
         next(e);

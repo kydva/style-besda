@@ -7,7 +7,7 @@ import { IPiece } from 'src/models/Piece';
 declare global {
   namespace Express {
     // eslint-disable-next-line @typescript-eslint/no-empty-interface
-    interface User extends IUser { }
+    interface User extends IUser, Document { }
     interface Request {
       category?: IPieceCategory & Document,
       piece?: IPiece & Document;

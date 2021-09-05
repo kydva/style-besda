@@ -3,6 +3,9 @@ import request from 'supertest';
 import { User } from '../src/models/User';
 import mongoose from 'mongoose';
 import redis from '../src/utils/redis';
+import { PieceCategory } from '../src/models/PieceCategory';
+import { Piece } from '../src/models/Piece';
+import supertest from 'supertest';
 
 
 afterAll(async () => {
@@ -12,6 +15,8 @@ afterAll(async () => {
 
 afterEach(async () => {
     await User.deleteMany();
+    await PieceCategory.deleteMany();
+    await Piece.deleteMany();
 });
 
 
@@ -55,5 +60,38 @@ describe('User registration', () => {
                     password: 'Password must be between 6 and 60 characters'
                 }
             });
+    });
+});
+
+describe('Wardrobe', () => {
+    test('PUT /users/me/wardrobe/:piece', async () => {
+        const userData = { name: 'userrr', password: '123456' };
+        await (new User(userData)).save();
+        const agent = supertest.agent(app);
+        await agent.post('/login').send(userData);
+
+        const category = await (new PieceCategory({ name: 'T-Shirts', gender: 'M' })).save();
+        const piece = await (new Piece({ name: 'White t-shirt', gender: 'M', category: category._id, img: 'img.jpg' })).save();
+        agent.put(`/users/me/wardrobe/${piece._id}`).expect(204);
+        agent.put(`/users/me/wardrobe/${piece._id}`).expect(204);
+        agent.get('/users/me').expect(200).expect((res) => {
+            expect(res.body.user.wardrobe).toEqual([piece._id]);
+        });
+    });
+
+    test('DELETE /users/me/wardrobe/:piece', async () => {
+        const userData = { name: 'userrr', password: '123456' };
+        await (new User(userData)).save();
+        const agent = supertest.agent(app);
+        await agent.post('/login').send(userData);
+
+        const category = await (new PieceCategory({ name: 'T-Shirts', gender: 'M' })).save();
+        const piece = await (new Piece({ name: 'White t-shirt', gender: 'M', category: category._id, img: 'img.jpg' })).save();
+        agent.put(`/users/me/wardrobe/${piece._id}`).expect(204);
+        agent.delete(`/users/me/wardrobe/${piece._id}`).expect(204);
+        agent.delete(`/users/me/wardrobe/${piece._id}`).expect(204);
+        agent.get('/users/me').expect(200).expect((res) => {
+            expect(res.body.user.wardrobe).toEqual([]);
+        });
     });
 });

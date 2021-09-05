@@ -68,9 +68,13 @@ describe('POST /pieces', () => {
 });
 
 describe('GET /pieces', () => {
+    it('Shouldn\'t pass non-authorized users', async () => {
+        await supertest(app).get('/pieces').expect(401);
+    });
+
     it('Should return pieces', async () => {
         const category = await (new PieceCategory({ name: 'T-Shirts', gender: 'M' })).save();
-
+        const agent = await getAdminAgent();
         await Piece.insertMany([
             { name: 'White t-shirt', gender: 'M', category: category._id, img: 'img.jpg' },
             { name: 'Black t-shirt', gender: 'M', category: category._id, img: 'img.jpg' },
@@ -78,8 +82,13 @@ describe('GET /pieces', () => {
             { name: 'Yellow t-shirt', gender: 'M', category: category._id, img: 'img.jpg' }
         ]);
 
-        await supertest(app).get('/pieces').expect(200).expect((res) => {
+        await agent.get('/pieces').expect(200).expect((res) => {
             expect(res.body.pieces).toHaveLength(4);
+            console.log(res.body.pieces);
+            expect(res.body.pieces[0]).toHaveProperty('_id');
+            expect(res.body.pieces[0]).toHaveProperty('name');
+            expect(res.body.pieces[0]).toHaveProperty('img');
+            expect(res.body.pieces[0]).toHaveProperty('inWardrobe');
         });
     });
 });

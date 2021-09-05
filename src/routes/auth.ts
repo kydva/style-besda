@@ -10,10 +10,6 @@ router.post('/login', passport.authenticate('local'), (req, res) => {
     res.send({ user: req.user });
 });
 
-router.get('/me', (req, res) => {
-    res.send({ user: req.user || null });
-});
-
 router.get('/logout', (req, res) => {
     req.logout();
     res.end();
