@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { isAuthenticated } from '../utils/auth';
 import { Piece } from '../models/Piece';
-import { Types } from 'mongoose';
 
 const router = Router();
 
