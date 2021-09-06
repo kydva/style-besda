@@ -1,4 +1,4 @@
-import { Document, model, PopulatedDoc, Schema, Model } from 'mongoose';
+import { Document, model, PopulatedDoc, Schema, Model, FilterQuery } from 'mongoose';
 import uniqueValidator from 'mongoose-unique-validator';
 
 export interface IPieceCategory {
@@ -10,7 +10,7 @@ export interface IPieceCategory {
 }
 
 interface IPieceCategoryModel extends Model<IPieceCategory> {
-    getTree(): any
+    getTree(filter: FilterQuery<IPieceCategory>): any
 }
 
 const pieceCategorySchema = new Schema<IPieceCategory, IPieceCategoryModel>({
@@ -47,8 +47,8 @@ pieceCategorySchema.pre('remove', async function (next) {
     next();
 });
 
-pieceCategorySchema.statics.getTree = async function () {
-    return await this.find({ parent: null }).populate({ path: 'children', populate: { path: 'children' } });
+pieceCategorySchema.statics.getTree = async function (filter: FilterQuery<IPieceCategory>) {
+    return await this.find({ parent: null, ...filter }).populate({ path: 'children', populate: { path: 'children' } });
 };
 
 export const PieceCategory = model<IPieceCategory, IPieceCategoryModel>('PieceCategory', pieceCategorySchema);

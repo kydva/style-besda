@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAdmin } from '../utils/auth';
+import { isAdmin, isAuthenticated } from '../utils/auth';
 import { PieceCategory } from '../models/PieceCategory';
 
 const router = Router();
@@ -13,9 +13,9 @@ router.param('category', async function (req, res, next, categoryId) {
     next();
 });
 
-router.get('/', async (req, res, next) => {
+router.get('/', isAuthenticated, async (req, res, next) => {
     try {
-        const categoriesTree = await PieceCategory.getTree();
+        const categoriesTree = await PieceCategory.getTree({gender: req.user.gender});
         res.send({ categories: categoriesTree });
     } catch (e) {
         next(e);

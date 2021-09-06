@@ -22,12 +22,11 @@ afterEach(async () => {
 
 describe('User login', () => {
     it('Should return 200 when input data are valid', async () => {
-        const userData = { name: 'testUser', password: '123456' };
-        await (new User(userData)).save();
+        await (new User({ name: 'testUser', password: '123456', gender: 'M' })).save();
 
         await request(app)
             .post('/login')
-            .send(userData)
+            .send({name: 'testUser', password: '123456'})
             .expect(200);
     });
 
@@ -43,7 +42,7 @@ describe('User registration', () => {
     it('Should return 201 and create user when input data are valid', async () => {
         await request(app)
             .post('/register')
-            .send({ name: 'newUser1337', password: '123456789', passwordConfirm: '123456789' })
+            .send({ name: 'newUser1337', password: '123456789', passwordConfirm: '123456789', gender: 'M' })
             .expect(201);
 
         const user = await User.find({ name: 'newUser1337' });
@@ -53,7 +52,7 @@ describe('User registration', () => {
     it('Should return 400 and error messages when input data are invalid', async () => {
         await request(app)
             .post('/register')
-            .send({ name: 'aq', password: '12', passwordConfirm: '12' })
+            .send({ name: 'aq', password: '12', passwordConfirm: '12', gender: 'M' })
             .expect(400, {
                 errors: {
                     name: 'Username must be between 4 and 22 characters',
@@ -65,7 +64,7 @@ describe('User registration', () => {
 
 describe('Wardrobe', () => {
     test('PUT /users/me/wardrobe/:piece', async () => {
-        const userData = { name: 'userrr', password: '123456' };
+        const userData = { name: 'userrr', password: '123456', gender: 'M' };
         await (new User(userData)).save();
         const agent = supertest.agent(app);
         await agent.post('/login').send(userData);
@@ -80,7 +79,7 @@ describe('Wardrobe', () => {
     });
 
     test('DELETE /users/me/wardrobe/:piece', async () => {
-        const userData = { name: 'userrr', password: '123456' };
+        const userData = { name: 'userrr', password: '123456', gender: 'M' };
         await (new User(userData)).save();
         const agent = supertest.agent(app);
         await agent.post('/login').send(userData);

@@ -6,7 +6,7 @@ import { PieceCategory } from '../src/models/PieceCategory';
 import { User } from '../src/models/User';
 
 beforeAll(async () => {
-    const admin = new User({ name: 'admin', password: '123456789', roles: ['admin'] });
+    const admin = new User({ name: 'admin', password: '123456789', gender: 'M', roles: ['admin'] });
     await admin.save();
 });
 
@@ -23,7 +23,7 @@ afterEach(async () => {
 describe('POST /piece-categories', () => {
     it('Shouldn\'t pass non-admin users', async () => {
         const agent = supertest.agent(app);
-        const notAdmin = new User({ name: 'notAdmin', password: '123456789' });
+        const notAdmin = new User({ name: 'notAdmin', password: '123456789', gender: 'M' });
         await notAdmin.save();
         await agent.post('/login').send({ name: 'notAdmin', password: '123456789' }).expect(200);
         await agent.post('/piece-categories').send({ name: 'Shirts', gender: 'M' }).expect(403);
@@ -41,6 +41,10 @@ describe('POST /piece-categories', () => {
 });
 
 describe('GET /piece-categories', () => {
+    it('Shouldn\'t pass non-authenticated users', async () => {
+        await supertest(app).get('/piece-categories').expect(401);
+    });
+
     it('Should return categories tree', async () => {
         await addCategories();
         const shirts = await PieceCategory.findOne({ name: 'Shirts' });
@@ -48,7 +52,8 @@ describe('GET /piece-categories', () => {
         const grandadCollarShirts = await PieceCategory.findOne({ name: 'Grandad collar shirts' });
         const hawaiianShirts = await PieceCategory.findOne({ name: 'Hawaiian shirts' });
 
-        await supertest(app).get('/piece-categories').expect(200).expect(async (res) => {
+        const user = await getAdminAgent();
+        await user.get('/piece-categories').expect(200).expect(async (res) => {
             const expected = {
                 categories: [
                     {

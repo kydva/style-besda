@@ -5,7 +5,8 @@ import uniqueValidator from 'mongoose-unique-validator';
 export interface IUser {
     name: string,
     password: string
-    avatar?: string
+    avatar?: string,
+    gender: 'M'|'F',
     roles: string[]
     wardrobe: Types.ObjectId[]
     comparePassword(candidatePassword: string): Promise<boolean>
@@ -29,6 +30,7 @@ const userSchema = new Schema<IUser>({
         maxLength: [60, 'Password must be between 6 and 60 characters']
     },
     avatar: String,
+    gender: {type: String, enum: ['M', 'F'], required: [true, 'Gender is required']},
     roles: [String],
     wardrobe: [{ type: 'ObjectId', ref: 'Piece' }],
     __v: { type: Number, select: false }

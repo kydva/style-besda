@@ -58,7 +58,7 @@ router.get('/', isAuthenticated, async (req, res, next) => {
         const limit = +(req.query.limit ?? 20);
         const skip = +(req.query.skip ?? 0);
 
-        const query: FilterQuery<IPiece> = {};
+        const query: FilterQuery<IPiece> = {gender: req.user.gender};
 
         if (req.query.inWardrobe && req.query.inWardrobe === 'true') {
             query._id = { $in: req.user.wardrobe };
