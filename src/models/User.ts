@@ -66,7 +66,6 @@ userSchema.methods.addToWardrobe = function (piece: string | Types.ObjectId) {
 userSchema.methods.removeFromWardrobe = function (piece: string | Types.ObjectId) {
     const user = this as IUser;
     const pieceId = (typeof piece === 'string') ? Types.ObjectId(piece) : piece;
-    console.log(user.wardrobe.length);
     user.wardrobe = user.wardrobe.filter((id) => {
         return pieceId.toString() != id.toString();
     });

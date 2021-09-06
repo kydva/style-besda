@@ -11,7 +11,7 @@ router.use(authRouter);
 router.use('/users', usersRouter);
 router.use('/piece-categories', categoriesRouter);
 router.use('/pieces', piecesRouter);
-router.get('/img/:name', async (req, res) => {
+router.get('/img/:name(*)', async (req, res) => {
     const data = await s3.getFile(req.params.name);
     if (data) {
         res.setHeader('Cache-Control', 'max-age=' + 365 * 24 * 60 * 60);
