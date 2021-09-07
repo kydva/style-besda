@@ -80,11 +80,11 @@ describe('GET /pieces', () => {
             { name: 'Black t-shirt', gender: 'M', category: category._id, img: 'img.jpg' },
             { name: 'Orange t-shirt', gender: 'M', category: category._id, img: 'img.jpg' },
             { name: 'Yellow t-shirt', gender: 'M', category: category._id, img: 'img.jpg' },
-            { name: 'Women t-shirt', gender: 'F', category: category._id, img: 'img.jpg' },
+            { name: 'Women\'s t-shirt', gender: 'F', category: category._id, img: 'img.jpg' },
         ]);
 
         await agent.get('/pieces').expect(200).expect((res) => {
-            expect(res.body.pieces).toHaveLength(4); //Women pieces shouldn't be counted
+            expect(res.body.pieces).toHaveLength(4); //Women's pieces shouldn't be counted
             expect(res.body.pieces[0]).toHaveProperty('_id');
             expect(res.body.pieces[0]).toHaveProperty('name');
             expect(res.body.pieces[0]).toHaveProperty('img');

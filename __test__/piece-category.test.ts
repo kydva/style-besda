@@ -47,6 +47,7 @@ describe('GET /piece-categories', () => {
 
     it('Should return categories tree', async () => {
         await addCategories();
+        
         const shirts = await PieceCategory.findOne({ name: 'Shirts' });
         const shortSleeveShirts = await PieceCategory.findOne({ name: 'Short sleeve shirts' });
         const grandadCollarShirts = await PieceCategory.findOne({ name: 'Grandad collar shirts' });

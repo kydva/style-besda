@@ -5,6 +5,7 @@ import * as s3 from '../utils/s3';
 import upload from '../utils/upload';
 import { FilterQuery } from 'mongoose';
 import { PieceCategory } from '../models/PieceCategory';
+import validateImageMiddleware from '../utils/validate-image';
 
 const router = Router();
 
@@ -21,27 +22,15 @@ router.param('piece', async (req, res, next, pieceId) => {
     }
 });
 
-router.post('/', isAdmin, upload.single('img'), async (req, res, next) => {
+router.post('/', isAdmin, upload.single('img'), validateImageMiddleware, async (req, res, next) => {
     try {
-        const allowedTypes = ['image/jpeg', 'image/png'];
-
-        if (!req.file) {
-            return res.status(400).send({ errors: { img: 'Image is required' } });
-        }
-
-        if (!allowedTypes.includes(req.file.mimetype)) {
-            return res.status(415).send({ errors: { img: 'Unsupported image type. Supported extensions: png, jpg, jpeg' } });
-        }
-
         const piece = new Piece({
             name: req.body.name,
             gender: req.body.gender,
             category: req.body.category,
             img: req.file.filename
         });
-
         await piece.validate();
-
         //If validation error is not thrown, upload the image to s3
         await s3.moveFileToBucket(req.file, 'pieces');
         await piece.save();
