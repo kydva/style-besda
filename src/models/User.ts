@@ -6,13 +6,16 @@ export interface IUser {
     name: string,
     password: string
     avatar?: string,
-    gender: 'M'|'F',
+    gender: 'M' | 'F',
     roles: string[]
     wardrobe: Types.ObjectId[]
+    favorites: Types.ObjectId[]
     comparePassword(candidatePassword: string): Promise<boolean>
     isAdmin(): boolean
     addToWardrobe(piece: string | Types.ObjectId): void
     removeFromWardrobe(piece: string | Types.ObjectId): void
+    addToFavorites(look: string | Types.ObjectId): void
+    removeFromFavorites(look: string | Types.ObjectId): void
 }
 
 const userSchema = new Schema<IUser>({
@@ -30,9 +33,10 @@ const userSchema = new Schema<IUser>({
         maxLength: [60, 'Password must be between 6 and 60 characters']
     },
     avatar: String,
-    gender: {type: String, enum: ['M', 'F'], required: [true, 'Gender is required']},
+    gender: { type: String, enum: ['M', 'F'], required: [true, 'Gender is required'] },
     roles: [String],
     wardrobe: [{ type: 'ObjectId', ref: 'Piece' }],
+    favorites: [{ type: 'ObjectId', ref: 'Look' }],
     __v: { type: Number, select: false }
 });
 
@@ -70,6 +74,22 @@ userSchema.methods.removeFromWardrobe = function (piece: string | Types.ObjectId
     const pieceId = (typeof piece === 'string') ? Types.ObjectId(piece) : piece;
     user.wardrobe = user.wardrobe.filter((id) => {
         return pieceId.toString() != id.toString();
+    });
+};
+
+userSchema.methods.addToFavorites = function (look: string | Types.ObjectId) {
+    const user = this as IUser;
+    const lookId = (typeof look === 'string') ? Types.ObjectId(look) : look;
+    if (!user.favorites.includes(lookId)) {
+        user.favorites.push(lookId);
+    }
+};
+
+userSchema.methods.removeFromFavorites = function (look: string | Types.ObjectId) {
+    const user = this as IUser;
+    const lookId = (typeof look === 'string') ? Types.ObjectId(look) : look;
+    user.favorites = user.favorites.filter((id) => {
+        return lookId.toString() != id.toString();
     });
 };
 
