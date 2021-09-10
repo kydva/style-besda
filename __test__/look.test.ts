@@ -53,7 +53,7 @@ describe('POST /looks', () => {
 
         const agent = await getUserAgent();
         await agent.post('/looks').send({
-            pieces: [whiteShirt._id, yellowPants._id],
+            pieces: `${whiteShirt._id},${yellowPants._id}`,
             gender: 'M',
         }).expect(201);
 
@@ -67,7 +67,7 @@ describe('POST /looks', () => {
     it('Should return 400 status and error when input data are invalid', async () => {
         const agent = await getUserAgent();
         await agent.post('/looks').send({
-            pieces: [],
+            pieces: '',
             gender: 'Apache attack helicopter',
         }).expect(400).expect((res) => {
             expect(res.body.errors).toHaveProperty('gender');
@@ -100,19 +100,31 @@ describe('GET /looks', () => {
         const look3 = await (new Look({ pieces: [blackShirt._id, yellowPants._id, blackFedora._id, whiteSneakers._id], gender: 'M', img: 'img.jpg', author: user._id })).save();
         const look2 = await (new Look({ pieces: [blackShirt._id, yellowPants._id, whiteSneakers._id], gender: 'M', img: 'img.jpg', author: user._id })).save();
 
-        await Look.insertMany([
-            //These looks shouldn't be selected 
-            { pieces: [blackShirt._id, yellowPants._id], gender: 'M', img: 'img.jpg', author: user._id },
-            { pieces: [whiteShirt._id, blueJeans._id], gender: 'F', img: 'img.jpg', author: user._id }
-        ]);
 
-        await agent.get('/looks').expect(200).expect((res) => {
+        //These looks shouldn't be selected 
+        await (new Look({ pieces: [blackShirt._id, yellowPants._id], gender: 'M', img: 'img.jpg', author: user._id })).save(),
+        await (new Look({ pieces: [whiteShirt._id, blueJeans._id], gender: 'F', img: 'img.jpg', author: user._id })).save();
+
+        await agent.get('/looks?limit=2&skip=0').expect(200).expect((res) => {
             const looks = res.body.looks;
-            expect(looks).toHaveLength(4);
+            expect(looks).toHaveLength(2);
             expect(looks[0]._id).toEqual(look0._id.toString());
             expect(looks[1]._id).toEqual(look1._id.toString());
-            expect(looks[2]._id).toEqual(look2._id.toString());
-            expect(looks[3]._id).toEqual(look3._id.toString());
+            expect(res.body.totalResults).toEqual(4);
+        });
+
+        await agent.get('/looks?limit=2&skip=2').expect(200).expect((res) => {
+            const looks = res.body.looks;
+            expect(looks).toHaveLength(2);
+            expect(looks[0]._id).toEqual(look2._id.toString());
+            expect(looks[1]._id).toEqual(look3._id.toString());
+        });
+
+        user.favorites = [look1._id, look2._id];
+        await user.save();
+        await agent.get('/looks?favorites=true').expect(200).expect((res) => {
+            const looks = res.body.looks;
+            expect(looks).toHaveLength(2);
         });
     });
 });

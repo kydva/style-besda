@@ -11,7 +11,7 @@ const router = Router();
 router.post('/', isAuthenticated, upload.single('img'), validateImageMiddleware, async (req, res, next) => {
     try {
         const look = new Look({
-            pieces: req.body.pieces,
+            pieces: req.body.pieces ? req.body.pieces.split(',') : null,
             gender: req.body.gender,
             img: req.file.filename,
             author: req.user._id
@@ -28,12 +28,13 @@ router.post('/', isAuthenticated, upload.single('img'), validateImageMiddleware,
 
 router.get('/', isAuthenticated, async (req, res, next) => {
     try {
-        const looks = await Look.aggregate([
-            { $match: { gender: req.user.gender, pieces: { $in: req.user.wardrobe } } },
-            { $project: { variance: { $size: { $setDifference: ['$pieces', req.user.wardrobe] } } } },
-            { $sort: { variance: 1 } }
-        ]);
-        res.send({ looks });
+        const query = {
+            limit: +(req.query.limit ?? 15),
+            skip: +(req.query.skip ?? 0),
+            favorites: typeof req.query.favorites !== 'undefined' && req.query.favorites === 'true'
+        };
+        const results = await Look.findLooksFor(req.user, query);
+        res.send(results);
     } catch (e) {
         next(e);
     }
