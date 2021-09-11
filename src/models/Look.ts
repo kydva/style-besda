@@ -1,4 +1,4 @@
-import { Model, model, PopulatedDoc, Schema, Types } from 'mongoose';
+import { Model, model, PopulatedDoc, Schema } from 'mongoose';
 import { IPiece } from './Piece';
 import { IUser } from './User';
 
@@ -31,8 +31,14 @@ const lookSchema = new Schema<ILook, ILookModel>({
 });
 
 lookSchema.statics.findLooksFor = async function (user: IUser, query: Query): Promise<{ looks: any[]; totalResults: number; }> {
+    const match = {
+        _id: query.favorites ? { $in: user.favorites, $nin: user.hiddenLooks } : { $nin: [...user.favorites, ...user.hiddenLooks] },
+        gender: user.gender,
+        pieces: { $in: user.wardrobe }
+    };
+
     const looks = await Look.aggregate([
-        { $match: { _id: { [query.favorites ? '$in' : '$nin']: user.favorites }, gender: user.gender, pieces: { $in: user.wardrobe } } },
+        { $match: match },
         { $set: { variance: { $size: { $setDifference: ['$pieces', user.wardrobe] } } } },
         { $sort: { variance: 1, _id: 1 } },
         { $skip: query.skip },
@@ -59,11 +65,14 @@ lookSchema.statics.findLooksFor = async function (user: IUser, query: Query): Pr
 
     const looksForUser = looks.map((look) => {
         look.author = look.author[0];
-        look.favorited = user.favorites.includes(look._id);
+        look.pieces = look.pieces.map((piece: any) => {
+            piece.inWardrobe = user.wardrobe.includes(piece._id);
+            return piece;
+        });
         return look;
     });
 
-    const totalResults = await Look.countDocuments({ gender: user.gender, pieces: { $in: user.wardrobe } });
+    const totalResults = await Look.countDocuments(match);
     return { looks: looksForUser, totalResults };
 };
 

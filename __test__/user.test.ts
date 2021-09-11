@@ -6,6 +6,7 @@ import redis from '../src/utils/redis';
 import { PieceCategory } from '../src/models/PieceCategory';
 import { Piece } from '../src/models/Piece';
 import supertest from 'supertest';
+import { Look } from '../src/models/Look';
 
 
 afterAll(async () => {
@@ -26,7 +27,7 @@ describe('User login', () => {
 
         await request(app)
             .post('/login')
-            .send({name: 'testUser', password: '123456'})
+            .send({ name: 'testUser', password: '123456' })
             .expect(200);
     });
 
@@ -71,8 +72,8 @@ describe('Wardrobe', () => {
 
         const category = await (new PieceCategory({ name: 'T-Shirts', gender: 'M' })).save();
         const piece = await (new Piece({ name: 'White t-shirt', gender: 'M', category: category._id, img: 'img.jpg' })).save();
-        agent.put(`/users/me/wardrobe/${piece._id}`).expect(204);
-        agent.put(`/users/me/wardrobe/${piece._id}`).expect(204);
+        agent.put(`/users/me/wardrobe/${piece._id}`).expect(204); 
+        agent.put(`/users/me/wardrobe/${piece._id}`).expect(204); //Must be indepotent
         agent.get('/users/me').expect(200).expect((res) => {
             expect(res.body.user.wardrobe).toEqual([piece._id]);
         });
@@ -88,9 +89,87 @@ describe('Wardrobe', () => {
         const piece = await (new Piece({ name: 'White t-shirt', gender: 'M', category: category._id, img: 'img.jpg' })).save();
         agent.put(`/users/me/wardrobe/${piece._id}`).expect(204);
         agent.delete(`/users/me/wardrobe/${piece._id}`).expect(204);
-        agent.delete(`/users/me/wardrobe/${piece._id}`).expect(204);
+        agent.delete(`/users/me/wardrobe/${piece._id}`).expect(204); //Must be indepotent
         agent.get('/users/me').expect(200).expect((res) => {
             expect(res.body.user.wardrobe).toEqual([]);
+        });
+    });
+});
+
+describe('Favorites', () => {
+    test('PUT /users/me/favorites/:look', async () => {
+        const userData = { name: 'userrr', password: '123456', gender: 'M' };
+        const user = await (new User(userData)).save();
+        const agent = supertest.agent(app);
+        await agent.post('/login').send(userData);
+
+        const category = await (new PieceCategory({ name: 'test category', gender: 'M' })).save();
+        const blackShirt = await (new Piece({ name: 'Black shirt', gender: 'M', img: 'img.jpg', category: category._id })).save();
+        const yellowPants = await (new Piece({ name: 'Yellow pants', gender: 'M', img: 'img.jpg', category: category._id })).save();
+        const look = await (new Look({ pieces: [blackShirt._id, yellowPants._id], gender: 'M', img: 'img.jpg', author: user._id })).save();
+
+        agent.put(`/users/me/favorites/${look._id}`).expect(204); 
+        agent.put(`/users/me/favorites/${look._id}`).expect(204); //Must be indepotent
+        agent.get('/users/me').expect(200).expect((res) => {
+            expect(res.body.user.favorites).toEqual([look._id]);
+        });
+    });
+
+    test('DELETE /users/me/favorites/:look', async () => {
+        const userData = { name: 'userrr', password: '123456', gender: 'M' };
+        const user = await (new User(userData)).save();
+        const agent = supertest.agent(app);
+        await agent.post('/login').send(userData);
+
+        const category = await (new PieceCategory({ name: 'test category', gender: 'M' })).save();
+        const blackShirt = await (new Piece({ name: 'Black shirt', gender: 'M', img: 'img.jpg', category: category._id })).save();
+        const yellowPants = await (new Piece({ name: 'Yellow pants', gender: 'M', img: 'img.jpg', category: category._id })).save();
+        const look = await (new Look({ pieces: [blackShirt._id, yellowPants._id], gender: 'M', img: 'img.jpg', author: user._id })).save();
+
+        agent.put(`/users/me/favorites/${look._id}`).expect(204); 
+        agent.delete(`/users/me/favorites/${look._id}`).expect(204);
+        agent.delete(`/users/me/favorites/${look._id}`).expect(204); //Must be indepotent
+        agent.get('/users/me').expect(200).expect((res) => {
+            expect(res.body.user.favorites).toEqual([]);
+        });
+    });
+});
+
+describe('Hidden looks', () => {
+    test('PUT /users/me/hidden-looks/:look', async () => {
+        const userData = { name: 'userrr', password: '123456', gender: 'M' };
+        const user = await (new User(userData)).save();
+        const agent = supertest.agent(app);
+        await agent.post('/login').send(userData);
+
+        const category = await (new PieceCategory({ name: 'test category', gender: 'M' })).save();
+        const blackShirt = await (new Piece({ name: 'Black shirt', gender: 'M', img: 'img.jpg', category: category._id })).save();
+        const yellowPants = await (new Piece({ name: 'Yellow pants', gender: 'M', img: 'img.jpg', category: category._id })).save();
+        const look = await (new Look({ pieces: [blackShirt._id, yellowPants._id], gender: 'M', img: 'img.jpg', author: user._id })).save();
+
+        agent.put(`/users/me/hidden-looks/${look._id}`).expect(204); 
+        agent.put(`/users/me/hidden-looks/${look._id}`).expect(204); //Must be indepotent
+        agent.get('/users/me').expect(200).expect((res) => {
+            expect(res.body.user.hiddenLooks).toEqual([look._id]);
+        });
+    });
+
+    test('DELETE /users/me/hidden-looks/:look', async () => {
+        const userData = { name: 'userrr', password: '123456', gender: 'M' };
+        const user = await (new User(userData)).save();
+        const agent = supertest.agent(app);
+        await agent.post('/login').send(userData);
+
+        const category = await (new PieceCategory({ name: 'test category', gender: 'M' })).save();
+        const blackShirt = await (new Piece({ name: 'Black shirt', gender: 'M', img: 'img.jpg', category: category._id })).save();
+        const yellowPants = await (new Piece({ name: 'Yellow pants', gender: 'M', img: 'img.jpg', category: category._id })).save();
+        const look = await (new Look({ pieces: [blackShirt._id, yellowPants._id], gender: 'M', img: 'img.jpg', author: user._id })).save();
+
+        agent.put(`/users/me/hidden-looks/${look._id}`).expect(204); 
+        agent.delete(`/users/me/hidden-looks/${look._id}`).expect(204);
+        agent.delete(`/users/me/hidden-looks/${look._id}`).expect(204); //Must be indepotent
+        agent.get('/users/me').expect(200).expect((res) => {
+            expect(res.body.user.hiddenLooks).toEqual([]);
         });
     });
 });
