@@ -10,12 +10,16 @@ export interface IUser {
     roles: string[]
     wardrobe: Types.ObjectId[]
     favorites: Types.ObjectId[]
+    hiddenLooks: Types.ObjectId[]
     comparePassword(candidatePassword: string): Promise<boolean>
     isAdmin(): boolean
     addToWardrobe(piece: string | Types.ObjectId): void
     removeFromWardrobe(piece: string | Types.ObjectId): void
     addToFavorites(look: string | Types.ObjectId): void
     removeFromFavorites(look: string | Types.ObjectId): void
+    hideLook(look: string | Types.ObjectId): void
+    unhideLook(look: string | Types.ObjectId): void
+
 }
 
 const userSchema = new Schema<IUser>({
@@ -37,6 +41,7 @@ const userSchema = new Schema<IUser>({
     roles: [String],
     wardrobe: [{ type: 'ObjectId', ref: 'Piece' }],
     favorites: [{ type: 'ObjectId', ref: 'Look' }],
+    hiddenLooks: [{ type: 'ObjectId', ref: 'Look' }],
     __v: { type: Number, select: false }
 });
 
@@ -89,6 +94,22 @@ userSchema.methods.removeFromFavorites = function (look: string | Types.ObjectId
     const user = this as IUser;
     const lookId = (typeof look === 'string') ? Types.ObjectId(look) : look;
     user.favorites = user.favorites.filter((id) => {
+        return lookId.toString() != id.toString();
+    });
+};
+
+userSchema.methods.hideLook = function (look: string | Types.ObjectId) {
+    const user = this as IUser;
+    const lookId = (typeof look === 'string') ? Types.ObjectId(look) : look;
+    if (!user.hiddenLooks.includes(lookId)) {
+        user.hiddenLooks.push(lookId);
+    }
+};
+
+userSchema.methods.unhideLook = function (look: string | Types.ObjectId) {
+    const user = this as IUser;
+    const lookId = (typeof look === 'string') ? Types.ObjectId(look) : look;
+    user.hiddenLooks = user.hiddenLooks.filter((id) => {
         return lookId.toString() != id.toString();
     });
 };
