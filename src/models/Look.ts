@@ -69,6 +69,8 @@ lookSchema.statics.findLooksFor = async function (user: IUser, query: Query): Pr
             piece.inWardrobe = user.wardrobe.includes(piece._id);
             return piece;
         });
+        look.isLiked = user.favorites.includes(look._id);
+        look.isDisliked = user.hiddenLooks.includes(look._id);
         return look;
     });
 
