@@ -33,7 +33,8 @@ router.get('/', isAuthenticated, async (req, res, next) => {
             limit: +(req.query.limit ?? 15),
             skip: +(req.query.skip ?? 0),
             season: req.query.season?.toString(),
-            favorites: typeof req.query.favorites !== 'undefined' && req.query.favorites === 'true'
+            showDisliked: req.query.showDisliked === 'true',
+            favorites: req.query.favorites === 'true'
         };
         const results = await Look.findLooksFor(req.user, query);
         res.send(results);

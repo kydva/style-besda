@@ -15,6 +15,7 @@ interface Query {
     skip: number,
     favorites: boolean,
     season?: string,
+    showDisliked?: boolean
 }
 
 interface ILookModel extends Model<ILook> {
@@ -35,13 +36,18 @@ const lookSchema = new Schema<ILook, ILookModel>({
 
 lookSchema.statics.findLooksFor = async function (user: IUser, query: Query): Promise<{ looks: any[]; totalResults: number; }> {
     const match: any = {
-        _id: query.favorites ? { $in: user.favorites, $nin: user.hiddenLooks } : { $nin: [...user.favorites, ...user.hiddenLooks] },
         gender: user.gender,
         pieces: { $in: user.wardrobe }
     };
 
     if (query.season) {
         match.season = query.season;
+    }
+
+    if (query.favorites) {
+        match._id = { $in: user.favorites };
+    } else {
+        match._id = query.showDisliked ? { $nin: user.favorites } : { $nin: [...user.favorites, ...user.hiddenLooks] };
     }
 
     const looks = await Look.aggregate([
