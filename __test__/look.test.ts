@@ -54,11 +54,13 @@ describe('POST /looks', () => {
         const agent = await getUserAgent();
         await agent.post('/looks').send({
             pieces: `${whiteShirt._id},${yellowPants._id}`,
+            season: 'Summer',
             gender: 'M',
         }).expect(201);
 
         const look = await Look.findOne();
         expect(look).toHaveProperty('pieces');
+        expect(look).toHaveProperty('season');
         expect(look).toHaveProperty('gender');
         expect(look).toHaveProperty('img');
         expect(look).toHaveProperty('author');
@@ -68,9 +70,11 @@ describe('POST /looks', () => {
         const agent = await getUserAgent();
         await agent.post('/looks').send({
             pieces: '',
+            season: '',
             gender: 'Apache attack helicopter',
         }).expect(400).expect((res) => {
             expect(res.body.errors).toHaveProperty('gender');
+            expect(res.body.errors).toHaveProperty('season');
             expect(res.body.errors).toHaveProperty('pieces');
         });
     });
@@ -95,18 +99,18 @@ describe('GET /looks', () => {
         await user.save();
 
         const agent = await getUserAgent();
-        const look1 = await (new Look({ pieces: [blackShirt._id, blueJeans._id, whiteSneakers._id], gender: 'M', img: 'img.jpg', author: user._id })).save();
-        const look0 = await (new Look({ pieces: [whiteShirt._id, blueJeans._id, whiteSneakers._id], gender: 'M', img: 'img.jpg', author: user._id })).save();
-        const look3 = await (new Look({ pieces: [blackShirt._id, yellowPants._id, blackFedora._id, whiteSneakers._id], gender: 'M', img: 'img.jpg', author: user._id })).save();
-        const look2 = await (new Look({ pieces: [blackShirt._id, yellowPants._id, whiteSneakers._id], gender: 'M', img: 'img.jpg', author: user._id })).save();
+        const look1 = await (new Look({ pieces: [blackShirt._id, blueJeans._id, whiteSneakers._id], season: 'Summer', gender: 'M', img: 'img.jpg', author: user._id })).save();
+        const look0 = await (new Look({ pieces: [whiteShirt._id, blueJeans._id, whiteSneakers._id], season: 'Summer', gender: 'M', img: 'img.jpg', author: user._id })).save();
+        const look3 = await (new Look({ pieces: [blackShirt._id, yellowPants._id, blackFedora._id, whiteSneakers._id], season: 'Summer', gender: 'M', img: 'img.jpg', author: user._id })).save();
+        const look2 = await (new Look({ pieces: [blackShirt._id, yellowPants._id, whiteSneakers._id], season: 'Summer', gender: 'M', img: 'img.jpg', author: user._id })).save();
 
 
         //These looks shouldn't be selected 
-        await (new Look({ pieces: [blackShirt._id, yellowPants._id], gender: 'M', img: 'img.jpg', author: user._id })).save(),
-        await (new Look({ pieces: [whiteShirt._id, blueJeans._id], gender: 'F', img: 'img.jpg', author: user._id })).save();
-        const hidden = await (new Look({ pieces: [whiteShirt._id, blueJeans._id], gender: 'M', img: 'img.jpg', author: user._id })).save();
+        await (new Look({ pieces: [blackShirt._id, yellowPants._id], season: 'Summer', gender: 'M', img: 'img.jpg', author: user._id })).save(),
+        await (new Look({ pieces: [whiteShirt._id, blueJeans._id], season: 'Summer', gender: 'F', img: 'img.jpg', author: user._id })).save();
+        const hidden = await (new Look({ pieces: [whiteShirt._id, blueJeans._id], season: 'Summer', gender: 'M', img: 'img.jpg', author: user._id })).save();
         //This look should be selected only when favorites" query param is true
-        const favorited =  await (new Look({ pieces: [blackShirt._id, blueJeans._id], gender: 'M', img: 'img.jpg', author: user._id })).save();
+        const favorited = await (new Look({ pieces: [blackShirt._id, blueJeans._id], season: 'Summer', gender: 'M', img: 'img.jpg', author: user._id })).save();
 
         user.hideLook(hidden._id);
         user.addToFavorites(favorited._id);

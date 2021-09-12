@@ -106,7 +106,7 @@ describe('Favorites', () => {
         const category = await (new PieceCategory({ name: 'test category', gender: 'M' })).save();
         const blackShirt = await (new Piece({ name: 'Black shirt', gender: 'M', img: 'img.jpg', category: category._id })).save();
         const yellowPants = await (new Piece({ name: 'Yellow pants', gender: 'M', img: 'img.jpg', category: category._id })).save();
-        const look = await (new Look({ pieces: [blackShirt._id, yellowPants._id], gender: 'M', img: 'img.jpg', author: user._id })).save();
+        const look = await (new Look({ pieces: [blackShirt._id, yellowPants._id], season: 'Summer', gender: 'M', img: 'img.jpg', author: user._id })).save();
 
         agent.put(`/users/me/favorites/${look._id}`).expect(204); 
         agent.put(`/users/me/favorites/${look._id}`).expect(204); //Must be indepotent
@@ -124,7 +124,7 @@ describe('Favorites', () => {
         const category = await (new PieceCategory({ name: 'test category', gender: 'M' })).save();
         const blackShirt = await (new Piece({ name: 'Black shirt', gender: 'M', img: 'img.jpg', category: category._id })).save();
         const yellowPants = await (new Piece({ name: 'Yellow pants', gender: 'M', img: 'img.jpg', category: category._id })).save();
-        const look = await (new Look({ pieces: [blackShirt._id, yellowPants._id], gender: 'M', img: 'img.jpg', author: user._id })).save();
+        const look = await (new Look({ pieces: [blackShirt._id, yellowPants._id], season: 'Summer', gender: 'M', img: 'img.jpg', author: user._id })).save();
 
         agent.put(`/users/me/favorites/${look._id}`).expect(204); 
         agent.delete(`/users/me/favorites/${look._id}`).expect(204);
@@ -145,7 +145,7 @@ describe('Hidden looks', () => {
         const category = await (new PieceCategory({ name: 'test category', gender: 'M' })).save();
         const blackShirt = await (new Piece({ name: 'Black shirt', gender: 'M', img: 'img.jpg', category: category._id })).save();
         const yellowPants = await (new Piece({ name: 'Yellow pants', gender: 'M', img: 'img.jpg', category: category._id })).save();
-        const look = await (new Look({ pieces: [blackShirt._id, yellowPants._id], gender: 'M', img: 'img.jpg', author: user._id })).save();
+        const look = await (new Look({ pieces: [blackShirt._id, yellowPants._id], season: 'Summer', gender: 'M', img: 'img.jpg', author: user._id })).save();
 
         agent.put(`/users/me/hidden-looks/${look._id}`).expect(204); 
         agent.put(`/users/me/hidden-looks/${look._id}`).expect(204); //Must be indepotent
@@ -163,7 +163,7 @@ describe('Hidden looks', () => {
         const category = await (new PieceCategory({ name: 'test category', gender: 'M' })).save();
         const blackShirt = await (new Piece({ name: 'Black shirt', gender: 'M', img: 'img.jpg', category: category._id })).save();
         const yellowPants = await (new Piece({ name: 'Yellow pants', gender: 'M', img: 'img.jpg', category: category._id })).save();
-        const look = await (new Look({ pieces: [blackShirt._id, yellowPants._id], gender: 'M', img: 'img.jpg', author: user._id })).save();
+        const look = await (new Look({ pieces: [blackShirt._id, yellowPants._id], season: 'Summer', gender: 'M', img: 'img.jpg', author: user._id })).save();
 
         agent.put(`/users/me/hidden-looks/${look._id}`).expect(204); 
         agent.delete(`/users/me/hidden-looks/${look._id}`).expect(204);

@@ -13,6 +13,7 @@ router.post('/', isAuthenticated, upload.single('img'), validateImageMiddleware,
         const look = new Look({
             pieces: req.body.pieces ? req.body.pieces.split(',') : null,
             gender: req.body.gender,
+            season: req.body.season,
             img: req.file.filename,
             author: req.user._id
         });
@@ -31,6 +32,7 @@ router.get('/', isAuthenticated, async (req, res, next) => {
         const query = {
             limit: +(req.query.limit ?? 15),
             skip: +(req.query.skip ?? 0),
+            season: req.query.season?.toString(),
             favorites: typeof req.query.favorites !== 'undefined' && req.query.favorites === 'true'
         };
         const results = await Look.findLooksFor(req.user, query);
