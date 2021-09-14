@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { isAuthenticated } from '../utils/auth';
 import upload from '../utils/upload';
-import validateImageMiddleware from '../utils/validate-image';
+import { validateImageMiddleware } from '../utils/validate-image';
 import * as s3 from '../utils/s3';
 import { Look } from '../models/Look';
 

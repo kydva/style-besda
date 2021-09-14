@@ -5,7 +5,7 @@ import * as s3 from '../utils/s3';
 import upload from '../utils/upload';
 import { FilterQuery } from 'mongoose';
 import { PieceCategory } from '../models/PieceCategory';
-import validateImageMiddleware from '../utils/validate-image';
+import { validateImageMiddleware } from '../utils/validate-image';
 
 const router = Router();
 
@@ -47,7 +47,7 @@ router.get('/', isAuthenticated, async (req, res, next) => {
         const limit = +(req.query.limit ?? 20);
         const skip = +(req.query.skip ?? 0);
 
-        const query: FilterQuery<IPiece> = {gender: req.user.gender};
+        const query: FilterQuery<IPiece> = { gender: req.user.gender };
 
         if (req.query.inWardrobe && req.query.inWardrobe === 'true') {
             query._id = { $in: req.user.wardrobe };
