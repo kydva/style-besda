@@ -8,6 +8,22 @@ import { Piece } from '../src/models/Piece';
 import supertest from 'supertest';
 import { Look } from '../src/models/Look';
 
+jest.mock('../src/utils/s3');
+jest.mock('../src/utils/upload', () => {
+    return {
+        single: jest.fn().mockImplementation(() => {
+            return (req: any, res: any, next: any) => {
+                req.file = {
+                    originalname: 'avatar.jpg',
+                    mimetype: 'image/jpeg',
+                    filename: 'avatar.jpg',
+                    path: 'tmp/avatar.jpg',
+                };
+                return next();
+            };
+        })
+    };
+});
 
 afterAll(async () => {
     await mongoose.connection.close();
@@ -19,7 +35,6 @@ afterEach(async () => {
     await PieceCategory.deleteMany();
     await Piece.deleteMany();
 });
-
 
 describe('User login', () => {
     it('Should return 200 when input data are valid', async () => {
@@ -63,6 +78,56 @@ describe('User registration', () => {
     });
 });
 
+describe('PATCH /users/me', () => {
+    test('Update user name', async () => {
+        const userData = { name: 'userrr', password: '123456', gender: 'M' };
+        await (new User(userData)).save();
+        const agent = supertest.agent(app);
+        await agent.post('/login').send(userData);
+
+        await agent.patch('/users/me').send({ name: 'newName' }).expect(204);
+        const user = await User.findOne();
+        expect(user.name).toEqual('newName');
+    });
+
+    test('Update user avatar', async () => {
+        const userData = { name: 'userrr', password: '123456', gender: 'M' };
+        await (new User(userData)).save();
+        const agent = supertest.agent(app);
+        await agent.post('/login').send(userData);
+
+        await agent.patch('/users/me').send().expect(204);
+        const user = await User.findOne();
+        expect(user.avatar).toEqual('avatar.jpg');
+    });
+
+    test('Update user password', async () => {
+        const userData = { name: 'userrr', password: '123456', gender: 'M' };
+        await (new User(userData)).save();
+        const agent = supertest.agent(app);
+        await agent.post('/login').send(userData);
+
+        await agent.patch('/users/me').send({
+            oldPassword: 'incorrect',
+            password: '123456789',
+            passwordConfirm: '123456788'
+        }).expect(400).expect((res) => {
+            const errors = res.body.errors;
+            expect(errors).toEqual({ oldPassword: 'Password is incorrect', passwordConfirm: 'Password is not confirmed' });
+        });
+
+        await agent.patch('/users/me').send({
+            oldPassword: '123456',
+            password: '123456789',
+            passwordConfirm: '123456789'
+        }).expect(204);
+
+        const user = await User.findOne();
+        const match = await user.comparePassword('123456789');
+        expect(match).toEqual(true);
+    });
+});
+
 describe('Wardrobe', () => {
     test('PUT /users/me/wardrobe/:piece', async () => {
         const userData = { name: 'userrr', password: '123456', gender: 'M' };
@@ -72,7 +137,7 @@ describe('Wardrobe', () => {
 
         const category = await (new PieceCategory({ name: 'T-Shirts', gender: 'M' })).save();
         const piece = await (new Piece({ name: 'White t-shirt', gender: 'M', category: category._id, img: 'img.jpg' })).save();
-        agent.put(`/users/me/wardrobe/${piece._id}`).expect(204); 
+        agent.put(`/users/me/wardrobe/${piece._id}`).expect(204);
         agent.put(`/users/me/wardrobe/${piece._id}`).expect(204); //Must be indepotent
         agent.get('/users/me').expect(200).expect((res) => {
             expect(res.body.user.wardrobe).toEqual([piece._id]);
@@ -108,7 +173,7 @@ describe('Favorites', () => {
         const yellowPants = await (new Piece({ name: 'Yellow pants', gender: 'M', img: 'img.jpg', category: category._id })).save();
         const look = await (new Look({ pieces: [blackShirt._id, yellowPants._id], season: 'Summer', gender: 'M', img: 'img.jpg', author: user._id })).save();
 
-        agent.put(`/users/me/favorites/${look._id}`).expect(204); 
+        agent.put(`/users/me/favorites/${look._id}`).expect(204);
         agent.put(`/users/me/favorites/${look._id}`).expect(204); //Must be indepotent
         agent.get('/users/me').expect(200).expect((res) => {
             expect(res.body.user.favorites).toEqual([look._id]);
@@ -126,7 +191,7 @@ describe('Favorites', () => {
         const yellowPants = await (new Piece({ name: 'Yellow pants', gender: 'M', img: 'img.jpg', category: category._id })).save();
         const look = await (new Look({ pieces: [blackShirt._id, yellowPants._id], season: 'Summer', gender: 'M', img: 'img.jpg', author: user._id })).save();
 
-        agent.put(`/users/me/favorites/${look._id}`).expect(204); 
+        agent.put(`/users/me/favorites/${look._id}`).expect(204);
         agent.delete(`/users/me/favorites/${look._id}`).expect(204);
         agent.delete(`/users/me/favorites/${look._id}`).expect(204); //Must be indepotent
         agent.get('/users/me').expect(200).expect((res) => {
@@ -147,7 +212,7 @@ describe('Hidden looks', () => {
         const yellowPants = await (new Piece({ name: 'Yellow pants', gender: 'M', img: 'img.jpg', category: category._id })).save();
         const look = await (new Look({ pieces: [blackShirt._id, yellowPants._id], season: 'Summer', gender: 'M', img: 'img.jpg', author: user._id })).save();
 
-        agent.put(`/users/me/hidden-looks/${look._id}`).expect(204); 
+        agent.put(`/users/me/hidden-looks/${look._id}`).expect(204);
         agent.put(`/users/me/hidden-looks/${look._id}`).expect(204); //Must be indepotent
         agent.get('/users/me').expect(200).expect((res) => {
             expect(res.body.user.hiddenLooks).toEqual([look._id]);
@@ -165,7 +230,7 @@ describe('Hidden looks', () => {
         const yellowPants = await (new Piece({ name: 'Yellow pants', gender: 'M', img: 'img.jpg', category: category._id })).save();
         const look = await (new Look({ pieces: [blackShirt._id, yellowPants._id], season: 'Summer', gender: 'M', img: 'img.jpg', author: user._id })).save();
 
-        agent.put(`/users/me/hidden-looks/${look._id}`).expect(204); 
+        agent.put(`/users/me/hidden-looks/${look._id}`).expect(204);
         agent.delete(`/users/me/hidden-looks/${look._id}`).expect(204);
         agent.delete(`/users/me/hidden-looks/${look._id}`).expect(204); //Must be indepotent
         agent.get('/users/me').expect(200).expect((res) => {

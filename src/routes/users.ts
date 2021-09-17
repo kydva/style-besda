@@ -2,12 +2,58 @@ import { Router } from 'express';
 import { isAuthenticated } from '../utils/auth';
 import { Piece } from '../models/Piece';
 import { Look } from '../models/Look';
+import { validateOptionalImageMiddleware } from '../utils/validate-image';
+import upload from '../utils/upload';
+import * as s3 from '../utils/s3';
 
 const router = Router();
 
 router.get('/me', (req, res) => {
     res.send({ user: req.user || null });
 });
+
+router.patch('/me', upload.single('avatar'), validateOptionalImageMiddleware, async (req, res, next) => {
+    try {
+        if (req.file) {
+            await s3.moveFileToBucket(req.file, 'users');
+            req.user.avatar = req.file.filename;
+            await req.user.save();
+        }
+        if (req.body.password || req.body.passwordConfirm || req.body.oldPassword) {
+            const errors: any = {};
+            if (!req.body.password) {
+                errors.password = 'Enter a new password';
+            }
+            if (req.body.password !== req.body.passwordConfirm) {
+                errors.passwordConfirm = 'Password is not confirmed';
+            }
+            if (!req.body.oldPassword) {
+                errors.oldPassword = 'You must enter your old password';
+            }
+            const match = await req.user.comparePassword(req.body.oldPassword);
+            if (!match) {
+                errors.oldPassword = 'Password is incorrect';
+            }
+            if (Object.keys(errors).length !== 0) {
+                return res.status(400).send({errors});
+            }
+
+            req.user.password = req.body.password;
+            await req.user.save();
+
+        }
+
+        if (req.body.name) {
+            req.user.name = req.body.name;
+            await req.user.save();
+        }
+
+        return res.sendStatus(204);
+    } catch (e) {
+        next(e);
+    }
+});
+
 
 router.param('piece', async (req, res, next, pieceId) => {
     try {

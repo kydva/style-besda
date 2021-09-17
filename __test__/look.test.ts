@@ -108,8 +108,9 @@ describe('GET /looks', () => {
         //These looks shouldn't be selected 
         await (new Look({ pieces: [blackShirt._id, yellowPants._id], season: 'Summer', gender: 'M', img: 'img.jpg', author: user._id })).save(),
         await (new Look({ pieces: [whiteShirt._id, blueJeans._id], season: 'Summer', gender: 'F', img: 'img.jpg', author: user._id })).save();
+        //This look should be selected only if 'showDisliked' query param is true
         const hidden = await (new Look({ pieces: [whiteShirt._id, blueJeans._id], season: 'Summer', gender: 'M', img: 'img.jpg', author: user._id })).save();
-        //This look should be selected only when favorites" query param is true
+        //This look should be selected only if favorites" query param is true
         const favorited = await (new Look({ pieces: [blackShirt._id, blueJeans._id], season: 'Summer', gender: 'M', img: 'img.jpg', author: user._id })).save();
 
         user.hideLook(hidden._id);
@@ -134,6 +135,10 @@ describe('GET /looks', () => {
         await agent.get('/looks?favorites=true').expect(200).expect((res) => {
             const looks = res.body.looks;
             expect(looks).toHaveLength(1);
+        });
+
+        await agent.get('/looks?showDisliked=true').expect(200).expect((res) => {
+            expect(res.body.looks).toHaveLength(5);
         });
     });
 });
