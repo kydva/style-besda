@@ -19,7 +19,6 @@ export interface IUser {
     removeFromFavorites(look: string | Types.ObjectId): void
     hideLook(look: string | Types.ObjectId): void
     unhideLook(look: string | Types.ObjectId): void
-
 }
 
 const userSchema = new Schema<IUser>({
@@ -34,7 +33,7 @@ const userSchema = new Schema<IUser>({
         type: String,
         required: [true, 'Password is required'],
         minLength: [6, 'Password must be between 6 and 60 characters'],
-        maxLength: [60, 'Password must be between 6 and 60 characters']
+        maxLength: [60, 'Password must be between 6 and 60 characters'],
     },
     avatar: String,
     gender: { type: String, enum: ['M', 'F'], required: [true, 'Gender is required'] },
@@ -42,8 +41,8 @@ const userSchema = new Schema<IUser>({
     wardrobe: [{ type: 'ObjectId', ref: 'Piece' }],
     favorites: [{ type: 'ObjectId', ref: 'Look' }],
     hiddenLooks: [{ type: 'ObjectId', ref: 'Look' }],
-    __v: { type: Number, select: false }
-});
+    __v: { type: Number }
+}, { timestamps: true });
 
 userSchema.plugin(uniqueValidator, { message: 'The user with name "{VALUE}" already exists' });
 
@@ -54,6 +53,13 @@ userSchema.pre('save', async function (next) {
         user.password = await bcrypt.hash(user.password, 8);
     }
     return next();
+});
+
+//Looks created by user
+userSchema.virtual('looks', {
+    ref: 'Look',
+    localField: '_id',
+    foreignField: 'author',
 });
 
 userSchema.methods.comparePassword = function (candidatePassword: string) {
@@ -113,5 +119,14 @@ userSchema.methods.unhideLook = function (look: string | Types.ObjectId) {
         return lookId.toString() != id.toString();
     });
 };
+
+userSchema.methods.toJSON = function () {
+    const obj = this.toObject();
+    delete obj.password;
+    return obj;
+};
+
+userSchema.set('toObject', { virtuals: true });
+userSchema.set('toJSON', { virtuals: true });
 
 export const User = model<IUser>('User', userSchema);

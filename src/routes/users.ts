@@ -5,6 +5,7 @@ import { Look } from '../models/Look';
 import { validateOptionalImageMiddleware } from '../utils/validate-image';
 import upload from '../utils/upload';
 import * as s3 from '../utils/s3';
+import { User } from '../models/User';
 
 const router = Router();
 
@@ -35,7 +36,7 @@ router.patch('/me', upload.single('avatar'), validateOptionalImageMiddleware, as
                 errors.oldPassword = 'Password is incorrect';
             }
             if (Object.keys(errors).length !== 0) {
-                return res.status(400).send({errors});
+                return res.status(400).send({ errors });
             }
 
             req.user.password = req.body.password;
@@ -54,6 +55,17 @@ router.patch('/me', upload.single('avatar'), validateOptionalImageMiddleware, as
     }
 });
 
+router.get('/:id', async (req, res, next) => {
+    try {
+        const user = await User.findById(req.params.id).populate('looks', ['_id', 'img']);
+        if (!user) {
+            res.sendStatus(404);
+        }
+        res.send({user});
+    } catch (e) {
+        next(e);
+    }
+});
 
 router.param('piece', async (req, res, next, pieceId) => {
     try {
