@@ -107,7 +107,7 @@ describe('GET /looks', () => {
 
         //These looks shouldn't be selected 
         await (new Look({ pieces: [blackShirt._id, yellowPants._id], season: 'Summer', gender: 'M', img: 'img.jpg', author: user._id })).save(),
-        await (new Look({ pieces: [whiteShirt._id, blueJeans._id], season: 'Summer', gender: 'F', img: 'img.jpg', author: user._id })).save();
+            await (new Look({ pieces: [whiteShirt._id, blueJeans._id], season: 'Summer', gender: 'F', img: 'img.jpg', author: user._id })).save();
         //This look should be selected only if 'showDisliked' query param is true
         const hidden = await (new Look({ pieces: [whiteShirt._id, blueJeans._id], season: 'Summer', gender: 'M', img: 'img.jpg', author: user._id })).save();
         //This look should be selected only if favorites" query param is true
@@ -141,6 +141,39 @@ describe('GET /looks', () => {
             expect(res.body.looks).toHaveLength(5);
         });
     });
+});
+
+describe('GET /looks/:id', () => {
+    it('Should return look', async () => {
+        const category = await (new PieceCategory({ name: 'test category', gender: 'M' })).save();
+        const whiteShirt = await (new Piece({ name: 'White shirt', gender: 'M', img: 'img.jpg', category: category._id })).save();
+        const yellowPants = await (new Piece({ name: 'Yellow pants', gender: 'M', img: 'img.jpg', category: category._id })).save();
+
+        const agent = await getUserAgent();
+        await agent.post('/looks').send({
+            pieces: `${whiteShirt._id},${yellowPants._id}`,
+            season: 'Summer',
+            gender: 'M',
+        }).expect(201);
+        
+        const look = await Look.findOne();
+
+        //Add look to favorites
+        await agent.put('/users/me/favorites/' + look._id).expect(204);
+        //Add piece to wardrobe
+        await agent.put('/users/me/wardrobe/' + whiteShirt._id).expect(204);
+
+        await agent.get('/looks/' + look._id).expect(200).expect((res) => {
+            const look = res.body.look;
+            expect(look.isLiked).toEqual(true);
+            expect(look.isDisliked).toEqual(false);
+            expect(look.pieces[0].name).toEqual('White shirt');
+            expect(look.pieces[0].inWardrobe).toEqual(true);
+            expect(look.pieces[1].inWardrobe).toEqual(false);
+        });
+    });
+
+
 });
 
 async function getUserAgent() {

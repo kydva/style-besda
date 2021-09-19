@@ -1,4 +1,4 @@
-import { Model, model, PopulatedDoc, Schema } from 'mongoose';
+import { Document, Model, model, PopulatedDoc, Schema } from 'mongoose';
 import { IPiece } from './Piece';
 import { IUser } from './User';
 
@@ -7,7 +7,8 @@ export interface ILook {
     gender: 'M' | 'F'
     season: 'Summer' | 'Winter' | 'Demi-season',
     img: string,
-    author: PopulatedDoc<Document & IUser>
+    author: PopulatedDoc<Document & IUser>,
+    toJsonFor(user: IUser & Document): any
 }
 
 interface Query {
@@ -34,7 +35,25 @@ const lookSchema = new Schema<ILook, ILookModel>({
     author: { type: 'ObjectId', ref: 'User', required: true }
 });
 
-lookSchema.statics.findLooksFor = async function (user: IUser, query: Query): Promise<{ looks: any[]; totalResults: number; }> {
+function lookToJsonForUser(look: any, user?: IUser & Document) {
+    const lookForUser = look instanceof Document ? look.toObject() : look;
+    if (user) {
+        lookForUser.pieces = lookForUser.pieces.map((piece: any) => {
+            piece.inWardrobe = user.wardrobe.includes(piece._id);
+            return piece;
+        });
+        lookForUser.isLiked = user.favorites.includes(look._id);
+        lookForUser.isDisliked = user.hiddenLooks.includes(look._id);
+        lookForUser.canDelete = user._id.equals(look.author) || user.isAdmin();
+    }
+    return lookForUser;
+}
+
+lookSchema.methods.toJsonFor = function (user: IUser & Document) {
+    return lookToJsonForUser(this, user);
+};
+
+lookSchema.statics.findLooksFor = async function (user: IUser & Document, query: Query): Promise<{ looks: any[]; totalResults: number; }> {
     const match: any = {
         gender: user.gender,
         pieces: { $in: user.wardrobe }
@@ -64,29 +83,10 @@ lookSchema.statics.findLooksFor = async function (user: IUser, query: Query): Pr
                 foreignField: '_id',
                 as: 'pieces'
             }
-        },
-        {
-            $lookup:
-            {
-                from: 'users',
-                localField: 'author',
-                foreignField: '_id',
-                as: 'author'
-            }
         }
     ]);
 
-    const looksForUser = looks.map((look) => {
-        look.author = look.author[0];
-        look.pieces = look.pieces.map((piece: any) => {
-            piece.inWardrobe = user.wardrobe.includes(piece._id);
-            return piece;
-        });
-        look.isLiked = user.favorites.includes(look._id);
-        look.isDisliked = user.hiddenLooks.includes(look._id);
-        return look;
-    });
-
+    const looksForUser = looks.map((look) => lookToJsonForUser(look, user));
     const totalResults = await Look.countDocuments(match);
     return { looks: looksForUser, totalResults };
 };

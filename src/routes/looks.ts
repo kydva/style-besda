@@ -41,7 +41,18 @@ router.get('/', isAuthenticated, async (req, res, next) => {
     } catch (e) {
         next(e);
     }
+});
 
+router.get('/:id', async (req, res, next) => {
+    try {
+        const look = await Look.findById(req.params.id).populate(['author', 'pieces']);
+        if (!look) {
+            return res.sendStatus(404);
+        }
+        res.send({ look: look.toJsonFor(req.user) });
+    } catch (e) {
+        next(e);
+    }
 });
 
 export default router;
