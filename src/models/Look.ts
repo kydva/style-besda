@@ -1,6 +1,6 @@
 import { Document, Model, model, PopulatedDoc, Schema } from 'mongoose';
 import { IPiece } from './Piece';
-import { IUser } from './User';
+import { IUser, User } from './User';
 
 export interface ILook {
     pieces: PopulatedDoc<Document & IPiece>[],
@@ -90,6 +90,23 @@ lookSchema.statics.findLooksFor = async function (user: IUser & Document, query:
     const totalResults = await Look.countDocuments(match);
     return { looks: looksForUser, totalResults };
 };
+
+lookSchema.pre('remove', async function (next) {
+    const relatedUsers = await User.find({$or: [
+        {favorites: this._id},
+        {hiddenLooks: this._id}
+    ]});
+    relatedUsers.forEach((user) => {
+        user.favorites = user.favorites.filter((lookId) => {
+            return !this._id.equals(lookId);
+        });
+        user.hiddenLooks = user.hiddenLooks.filter((lookId) => {
+            return !this._id.equals(lookId);
+        });
+        user.save();
+    });
+    next();
+});
 
 export const Look = model<ILook, ILookModel>('Look', lookSchema);
 

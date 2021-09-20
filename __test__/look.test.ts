@@ -155,7 +155,7 @@ describe('GET /looks/:id', () => {
             season: 'Summer',
             gender: 'M',
         }).expect(201);
-        
+
         const look = await Look.findOne();
 
         //Add look to favorites
@@ -172,8 +172,35 @@ describe('GET /looks/:id', () => {
             expect(look.pieces[1].inWardrobe).toEqual(false);
         });
     });
+});
 
+describe('DELETE /looks/:id', () => {
+    it('Should delete look and all refs to it', async () => {
+        const category = await (new PieceCategory({ name: 'test category', gender: 'M' })).save();
+        const whiteShirt = await (new Piece({ name: 'White shirt', gender: 'M', img: 'img.jpg', category: category._id })).save();
+        const yellowPants = await (new Piece({ name: 'Yellow pants', gender: 'M', img: 'img.jpg', category: category._id })).save();
 
+        const agent = await getUserAgent();
+        await agent.post('/looks').send({
+            pieces: `${whiteShirt._id},${yellowPants._id}`,
+            season: 'Summer',
+            gender: 'M',
+        }).expect(201);
+
+        const look = await Look.findOne();
+
+        //Add look to favorites
+        await agent.put('/users/me/favorites/' + look._id).expect(204);
+        //Delete look
+        await agent.delete('/looks/' + look._id).expect(204);
+        //Expect the look to be deleted
+        await agent.get('/looks/' + look._id).expect(404);
+        //Expect the user favorites are empty ( used setTimeout because look references are removed asynchronously )
+        setTimeout(async () => {
+            const user = await User.findOne();
+            expect(user.favorites).toHaveLength(0);
+        }, 1000);
+    });
 });
 
 async function getUserAgent() {

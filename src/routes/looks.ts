@@ -55,4 +55,13 @@ router.get('/:id', async (req, res, next) => {
     }
 });
 
+router.delete('/:id', async (req, res, next) => {
+    try {
+        const { deletedCount } = await Look.deleteOne({ _id: req.params.id });
+        deletedCount == 1 ? res.sendStatus(204) : res.sendStatus(404);
+    } catch (e) {
+        next(e);
+    }
+});
+
 export default router;
