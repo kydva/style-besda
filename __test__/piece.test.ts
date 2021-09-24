@@ -5,6 +5,8 @@ import app from '../src/app';
 import { Piece } from '../src/models/Piece';
 import { User } from '../src/models/User';
 import { PieceCategory } from '../src/models/PieceCategory';
+import { Look } from '../src/models/Look';
+import { accessSync } from 'fs';
 
 jest.mock('../src/utils/s3');
 jest.mock('../src/utils/upload', () => {
@@ -105,12 +107,24 @@ describe('PATCH /pieces/:piece', () => {
 });
 
 describe('DELETE /pieces/:piece', () => {
-    it('Should delete piece correctly', async () => {
+    it('Should delete piece and related looks', async () => {
         const category = await (new PieceCategory({ name: 'T-Shirts', gender: 'M' })).save();
-        const piece = await (new Piece({ name: 'White T-Shirt', gender: 'M', category: category._id, img: 'img.jpg' })).save();
+        const whiteShirt = await (new Piece({ name: 'White T-Shirt', gender: 'M', category: category._id, img: 'img.jpg' })).save();
+        const yellowPants = await (new Piece({ name: 'Yellow pants', gender: 'M', img: 'img.jpg', category: category._id })).save();
         const agent = await getAdminAgent();
-        await agent.delete(`/pieces/${piece._id}`).expect(204);
+
+        //Create related look
+        await agent.post('/looks').send({
+            pieces: `${whiteShirt._id},${yellowPants._id}`,
+            season: 'Summer',
+            gender: 'M',
+        }).expect(201);
+        //Delete piece
+        await agent.delete(`/pieces/${whiteShirt._id}`).expect(204);
+        //Expect the piece to be deleted
         expect(await Piece.findOne({ name: 'White T-Shirt', gender: 'M' })).toEqual(null);
+        //Expect related look to be deleted ( used setTimeout because looks are removed asynchronously )
+        setTimeout(async () => expect(await Look.find({ pieces: whiteShirt._id })).toBeNull(), 500);
     });
 });
 

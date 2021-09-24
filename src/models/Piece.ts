@@ -1,5 +1,6 @@
 import { Types, Schema, model } from 'mongoose';
 import uniqueValidator from 'mongoose-unique-validator';
+import { Look } from './Look';
 import { IUser } from './User';
 
 export interface IPiece {
@@ -28,5 +29,11 @@ pieceSchema.methods.toJsonFor = function (user: IUser) {
 };
 
 pieceSchema.plugin(uniqueValidator, { message: 'The piece with that name already exists' });
+
+pieceSchema.pre('remove', async function (next) {
+    const relatedLooks = await Look.find({ pieces: this._id });
+    relatedLooks.forEach((look) => look.delete());
+    next();
+});
 
 export const Piece = model<IPiece>('Piece', pieceSchema);

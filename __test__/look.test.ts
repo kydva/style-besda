@@ -107,7 +107,7 @@ describe('GET /looks', () => {
 
         //These looks shouldn't be selected 
         await (new Look({ pieces: [blackShirt._id, yellowPants._id], season: 'Summer', gender: 'M', img: 'img.jpg', author: user._id })).save(),
-            await (new Look({ pieces: [whiteShirt._id, blueJeans._id], season: 'Summer', gender: 'F', img: 'img.jpg', author: user._id })).save();
+        await (new Look({ pieces: [whiteShirt._id, blueJeans._id], season: 'Summer', gender: 'F', img: 'img.jpg', author: user._id })).save();
         //This look should be selected only if 'showDisliked' query param is true
         const hidden = await (new Look({ pieces: [whiteShirt._id, blueJeans._id], season: 'Summer', gender: 'M', img: 'img.jpg', author: user._id })).save();
         //This look should be selected only if favorites" query param is true
