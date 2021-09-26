@@ -2,10 +2,10 @@ import express from 'express';
 import mongoose from 'mongoose';
 import passport from 'passport';
 import cors from 'cors';
-import router from './routes';
+import apiRouter from './routes';
+import imagesRouter from './routes/images';
 import * as auth from './utils/auth';
 import errorHandler from './utils/error-handler';
-
 
 const app = express();
 
@@ -26,10 +26,8 @@ app.use(cors({
 app.use(auth.sessionMiddleware);
 app.use(passport.initialize());
 app.use(passport.session());
-
-
-app.use(router);
-
+app.use('/api/v1', apiRouter);
+app.use(imagesRouter);
 app.use(errorHandler);
 
 export default app;
