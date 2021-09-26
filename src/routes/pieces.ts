@@ -60,6 +60,9 @@ router.get('/', isAuthenticated, async (req, res, next) => {
             const matchedCategories = childCategories.concat(req.query.categories);
             query.category = { $in: matchedCategories };
         }
+        if (req.query.gender == 'M' || req.query.gender == 'F') {
+            query.gender = req.query.gender;
+        }
 
         const pieces = await Piece.find(query).limit(limit).skip(skip);
         const totalResults = await Piece.countDocuments(query);
