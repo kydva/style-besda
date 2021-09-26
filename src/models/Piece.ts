@@ -1,5 +1,4 @@
 import { Types, Schema, model } from 'mongoose';
-import uniqueValidator from 'mongoose-unique-validator';
 import { Look } from './Look';
 import { IUser } from './User';
 
@@ -12,12 +11,19 @@ export interface IPiece {
 }
 
 const pieceSchema = new Schema<IPiece>({
-    name: { type: String, required: [true, 'Name cannot be empty'], unique: true },
+    name: { type: String, required: [true, 'Name cannot be empty'] },
     gender: { type: String, enum: ['M', 'F'], required: [true, 'Gender is required'] },
     category: { type: 'ObjectId', ref: 'PieceCategory', required: [true, 'Please, choose a category'] },
     img: { type: String, required: [true, 'Image is required'] },
     __v: { type: Number, select: false }
 });
+
+pieceSchema.index({ key: { 'name': 1, 'gender': 1 } }, { unique: true });
+
+pieceSchema.path('name').validate(async function () {
+    const count = await Piece.countDocuments({ name: this.name, gender: this.gender });
+    return !count;
+}, 'Err');
 
 pieceSchema.methods.toJsonFor = function (user: IUser) {
     return {
@@ -27,8 +33,6 @@ pieceSchema.methods.toJsonFor = function (user: IUser) {
         inWardrobe: user.wardrobe.includes(this._id)
     };
 };
-
-pieceSchema.plugin(uniqueValidator, { message: 'The piece with that name already exists' });
 
 pieceSchema.pre('remove', async function (next) {
     const relatedLooks = await Look.find({ pieces: this._id });
