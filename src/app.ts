@@ -20,7 +20,7 @@ mongoose.connect(process.env.DB_URI, {
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors({
-    origin: 'http://localhost:8080',
+    origin: process.env.CORS_ALLOWED_ORIGIN,
     credentials: true
 }));
 app.use(auth.sessionMiddleware);
