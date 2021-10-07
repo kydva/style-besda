@@ -23,7 +23,8 @@
     "winston": "^3.3.3"
   },
   "scripts": {
-    "start": "tsc && node -r dotenv/config dist/server.js",
+    "prod": "tsc && export NODE_ENV=production && pm2 start --node-args=\"-r dotenv/config\" dist/server.js",
+    "dev": "tsc && node -r dotenv/config dist/server.js",
     "test": "jest --verbose"
   },
   "devDependencies": {
