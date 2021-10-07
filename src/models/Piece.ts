@@ -18,7 +18,7 @@ const pieceSchema = new Schema<IPiece>({
     __v: { type: Number, select: false }
 });
 
-pieceSchema.index({ key: { 'name': 1, 'gender': 1 } }, { unique: true });
+pieceSchema.index({ 'name': 1, 'gender': 1 }, { unique: true });
 
 pieceSchema.path('name').validate(async function () {
     const count = await Piece.countDocuments({ name: this.name, gender: this.gender });
