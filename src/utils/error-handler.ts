@@ -1,13 +1,5 @@
 import { ErrorRequestHandler } from 'express';
-import winston from 'winston';
-
-const logger = winston.createLogger({
-    format: winston.format.simple(),
-    transports: [
-        new winston.transports.File({ filename: 'errors.log' })
-    ]
-});
-
+import logger from './logger';
 
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
     logger.error(err);

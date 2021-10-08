@@ -6,6 +6,7 @@ import apiRouter from './routes';
 import imagesRouter from './routes/images';
 import * as auth from './utils/auth';
 import errorHandler from './utils/error-handler';
+import logger from './utils/logger';
 
 const app = express();
 
@@ -14,7 +15,8 @@ mongoose.connect(process.env.DB_URI, {
     useCreateIndex: true,
     useUnifiedTopology: true
 }).catch((e) => {
-    console.log(`Mongoose connection error: ${e}`);
+    console.log('Mongoose connection error: ' + e);
+    logger.error('Mongoose connection error: ' + e);
 });
 
 app.use(express.json());
