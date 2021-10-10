@@ -23,7 +23,7 @@ pieceSchema.index({ 'name': 1, 'gender': 1 }, { unique: true });
 pieceSchema.path('name').validate(async function () {
     const count = await Piece.countDocuments({ name: this.name, gender: this.gender });
     return !count;
-}, 'Err');
+}, 'Name must be unique');
 
 pieceSchema.methods.toJsonFor = function (user: IUser) {
     return {

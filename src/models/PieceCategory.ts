@@ -1,5 +1,4 @@
 import { Document, model, PopulatedDoc, Schema, Model, FilterQuery } from 'mongoose';
-import uniqueValidator from 'mongoose-unique-validator';
 
 export interface IPieceCategory {
     name: string,
@@ -22,9 +21,17 @@ const pieceCategorySchema = new Schema<IPieceCategory, IPieceCategoryModel>({
     __v: { type: Number, select: false }
 });
 
-pieceCategorySchema.plugin(uniqueValidator, { message: 'Name must be unique' });
+pieceCategorySchema.index({ 'name': 1, 'gender': 1 }, { unique: true });
 
 pieceCategorySchema.pre('save', async function (next) {
+    if (this.isModified('name')) {
+        const count = await PieceCategory.countDocuments({ name: this.name, gender: this.gender });
+        if (count) {
+            const validationErr = this.invalidate('name', 'Name must be unique');
+            return next(validationErr);
+        }
+    }
+
     if (this.isModified('parent') && this.parent) {
         const parent = await PieceCategory.findById(this.parent);
         parent.children.push(this._id);
