@@ -15,7 +15,8 @@ router.param('category', async function (req, res, next, categoryId) {
 
 router.get('/', isAuthenticated, async (req, res, next) => {
     try {
-        const categoriesTree = await PieceCategory.getTree({gender: req.user.gender});
+        const gender = req.query.gender == 'M' || req.query.gender == 'F'? req.query.gender : req.user.gender;
+        const categoriesTree = await PieceCategory.getTree({gender});
         res.send({ categories: categoriesTree });
     } catch (e) {
         next(e);
