@@ -1,5 +1,7 @@
 # Style Besda
 
+![](screenshots/userFlow.gif)
+
 ## External links
 * [Live application](http://52.91.103.90)
 * [Front-end GitHub repository](https://github.com/kydva/style-besda-front) 
