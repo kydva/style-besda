@@ -57,8 +57,14 @@ router.get('/:id', async (req, res, next) => {
 
 router.delete('/:id', async (req, res, next) => {
     try {
-        const { deletedCount } = await Look.deleteOne({ _id: req.params.id });
-        deletedCount == 1 ? res.sendStatus(204) : res.sendStatus(404);
+        const look = await Look.findById(req.params.id);
+        if (look == null) {
+            return res.sendStatus(404);
+        }
+        if (!look.author._id.equals(req.user._id) && !req.user.isAdmin()) {
+            return res.sendStatus(403);
+        }
+        res.sendStatus(204);
     } catch (e) {
         next(e);
     }
