@@ -65,6 +65,40 @@ This project uses [Jest](https://jestjs.io/) for testing
 
 To run tests, use ```npm run test```
 `
+## Screenshots
+
+<h3 align="center">Desktop</h3>
+
+ Main page                 |  Wardrobe           
+:-------------------------:|:-------------------------:
+![](screenshots/1.png)     |  ![](screenshots/3.png)
+
+ Look                      |  Recommendations       
+:-------------------------:|:-------------------------:
+![](screenshots/7.png)     |  ![](screenshots/4.png)
+
+ Profile settings          |  Profile            
+:-------------------------:|:-------------------------:
+![](screenshots/5.png)     |  ![](screenshots/6.png)
+
+<h3 align="center">Mobile</h3>
+
+ Main page (1)               |  Main page (2)          
+:---------------------------:|:-------------------------:
+![](screenshots/mobile/1_1.png)|  ![](screenshots/mobile/1_2.png)
+
+ Main page (3)               |  Sign up
+:---------------------------:|:-------------------------:
+![](screenshots/mobile/1_3.png)|  ![](screenshots/mobile/2.png)
+
+ Burger menu                 |  Wardrobe      
+:---------------------------:|:-------------------------:
+![](screenshots/mobile/3.png)|  ![](screenshots/mobile/4.png)
+
+ Recommendations             |  Profile        
+:---------------------------:|:-------------------------:
+![](screenshots/mobile/5.png)|  ![](screenshots/mobile/6.png)
+
 
 
 
