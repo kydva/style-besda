@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import passport from 'passport';
+import helmet from 'helmet';
 import cors from 'cors';
 import apiRouter from './routes';
 import imagesRouter from './routes/images';
@@ -25,6 +26,7 @@ app.use(cors({
     origin: process.env.CORS_ALLOWED_ORIGIN,
     credentials: true
 }));
+app.use(helmet());
 app.use(auth.sessionMiddleware);
 app.use(passport.initialize());
 app.use(passport.session());
